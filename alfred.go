@@ -12,17 +12,15 @@ import (
 // users have infinite creatives possibilities.
 func main() {
 
-	// Init Alfred configuration.
-	config, err := conf.InitConfig()
+	configuration, err := conf.GetConfiguration()
 	if err != nil {
-		panic(fmt.Errorf("fatal error config file: %w", err))
+		panic(fmt.Errorf("fatal error, config file: %w", err))
 	}
 
-	matches, err := files.FindFiles(config.GetString(conf.MOCKS_DIR), "*.json")
+	matches, err := files.FindFiles(configuration.Core.MocksDir, "*.json")
 	if err != nil {
 		panic(fmt.Errorf("no mock files found: %w", err))
 	}
 
 	fmt.Println(matches)
-
 }
