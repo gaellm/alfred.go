@@ -1,6 +1,8 @@
 package conf
 
 import (
+	"strings"
+
 	"github.com/imdario/mergo"
 )
 
@@ -35,5 +37,16 @@ func GetConfiguration() (Config, error) {
 		return Config{}, err
 	}
 
-	return configuration, nil
+	return sanitizeConfiguration(configuration), nil
+}
+
+//Check and correct configuration values
+func sanitizeConfiguration(configuration Config) Config {
+
+	if !strings.HasSuffix(configuration.Core.MocksDir, "/") {
+
+		configuration.Core.MocksDir += "/"
+	}
+
+	return configuration
 }

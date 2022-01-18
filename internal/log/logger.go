@@ -18,28 +18,21 @@ const (
 	LabelErr = "error"
 )
 
-/*
-RootLogger is the structure to use to produce logs.
-Country is mandatory.
-It is best to provide an app version to help in correlate logs with application upgrade.
-UseCase is for identifying the app that is producing the logs.
-*/
+//RootLogger is the structure to use to produce logs.
 type RootLogger struct {
 	// Used lowLogger
 	lowLogger *zap.Logger
 	//log config
 	ShowDebug bool
 	//log context part
-	country    string
 	component  string
 	appVersion string
 }
 
 //InitLogger create and initialize an atomic value (used as singleton) of the logs layer
-func InitLogger(country string, component string, debug bool, version string) RootLogger {
+func InitLogger(component string, debug bool, version string) RootLogger {
 	logger := RootLogger{
 		ShowDebug:  debug,
-		country:    country,
 		component:  component,
 		appVersion: version,
 	}
@@ -159,8 +152,6 @@ func Fatal(ctx context.Context, msg string, err error, fields ...zapcore.Field) 
 	GetLogger().lowLogger.Fatal(msg, allFields...)
 }
 
-const baseFilePath = "src/visa/"
-
 //Add fields from ctx
 func addContextInfo(ctx context.Context, fields ...zapcore.Field) []zapcore.Field {
 	if ctx != nil {
@@ -189,22 +180,3 @@ func LogPanic() {
 		Error(context.Background(), "Panic", err, zap.Stack("stack"))
 	}
 }
-
-/* Notes:
-
-//------------------
-// Log Management
-//------------------
-log.InitLogger(conf.Country, "ClassicComponent", true, "G1R0C0")
-
-
-//------------------
-// Server Management
-//------------------
-var asyncRunningJobsCount sync.WaitGroup //Use to count process to wait before shutdowning
-ctx := context.Background()
-classicServer, err := server.BuildServer(&conf, &asyncRunningJobsCount)
-if err != nil {
-	log.Error(ctx, "Server Panic", errors.New("error during preparing controller..."+err.Error()))
-	panic("Error during preparing controller..." + err.Error())
-} */

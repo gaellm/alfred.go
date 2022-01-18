@@ -4,6 +4,9 @@
 
 # This file contains all the settings configurable for Alfred with their default values.
 
-# Core options.
-[core]
-# mocks-dir = "user-files/mocks/" # Mocks' folder
+# [alfred]
+# name = "alfred-mock" # name
+# version = "1.0" # mock version
+    # Core options.
+    [core]
+    # mocks-dir = "user-files/mocks/" # Mocks' folder
