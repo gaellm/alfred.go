@@ -24,12 +24,26 @@ import (
 
 const (
 	//Mock files directory configuration key name.
-	MOCKS_DIR = "core.mocks-dir"
+	MOCKS_DIR_KEY = "alfred.core.mocks-dir"
+
+	//Component name configuration key name.
+	NAME_KEY = "alfred.name"
+
+	//Component version configuration key name.
+	VERSION_KEY = "alfred.version"
 )
 
 // Struct where all config keys are stored.
 type Config struct {
-	//Mocks' folder.
+	// Whole configuration.
+	Alfred AlfredConfig `mapstructure:"alfred"`
+}
+
+// Struct where all config keys are stored.
+type AlfredConfig struct {
+	Name    string `mapstructure:"name"`
+	Version string `mapstructure:"version"`
+	//Core configuration.
 	Core CoreConfig `mapstructure:"core"`
 }
 
@@ -75,6 +89,13 @@ func buildConfiguration() (Config, error) {
 	if err != nil {
 		return Config{}, err
 	}
+
+	// Set default is needed by viper to init the key,
+	// if not the env variable will not be applied if
+	// configuration key is commented.
+	v.SetDefault(NAME_KEY, "")
+	v.SetDefault(MOCKS_DIR_KEY, "")
+	v.SetDefault(VERSION_KEY, "")
 
 	//Unmarshall loaded config into our struct
 	err = v.Unmarshal(&configuration)

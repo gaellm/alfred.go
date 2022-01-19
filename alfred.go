@@ -41,13 +41,13 @@ func main() {
 	configurationJson, _ := json.Marshal(configuration)
 
 	//Log Management
-	log.InitLogger("alfred", true, "0.1")
+	log.InitLogger(configuration.Alfred.Name, true, configuration.Alfred.Version)
 
 	//Core context
 	ctx := context.Background()
 	log.Debug(ctx, "alfred configuration initialized with: "+string(configurationJson))
 
-	matches, err := files.FindFiles(configuration.Core.MocksDir, "*.json")
+	matches, err := files.FindFiles(configuration.Alfred.Core.MocksDir, "*.json")
 	if err != nil {
 		log.Error(ctx, "Application Panic", errors.New("error during mocks load..."+err.Error()))
 		panic("error during mocks load......" + err.Error())

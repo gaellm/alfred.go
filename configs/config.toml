@@ -4,7 +4,7 @@
 
 # This file contains all the settings configurable for Alfred with their default values.
 
-# [alfred]
+[alfred]
 # name = "alfred-mock" # name
 # version = "1.0" # mock version
     # Core options.

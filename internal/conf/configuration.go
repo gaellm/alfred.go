@@ -17,22 +17,31 @@
 package conf
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/imdario/mergo"
 )
 
 const (
+	DEFAULT_NAME      = "alfred-mock"
+	DEFAULT_VERSION   = "1.0"
 	DEFAULT_MOCKS_DIR = "user-files/mocks/"
 )
 
 var DefaultConfig = Config{
-	Core: CoreConfig{
-		MocksDir: DEFAULT_MOCKS_DIR,
+	AlfredConfig{
+		Name:    DEFAULT_NAME,
+		Version: DEFAULT_VERSION,
+		Core: CoreConfig{
+			MocksDir: DEFAULT_MOCKS_DIR,
+		},
 	},
 }
 
 func mergeConfigs(dst *Config, src Config) error {
+
+	fmt.Println(dst)
 
 	if err := mergo.Merge(dst, src); err != nil {
 		return err
@@ -59,9 +68,9 @@ func GetConfiguration() (Config, error) {
 //Check and correct configuration values
 func sanitizeConfiguration(configuration Config) Config {
 
-	if !strings.HasSuffix(configuration.Core.MocksDir, "/") {
+	if !strings.HasSuffix(configuration.Alfred.Core.MocksDir, "/") {
 
-		configuration.Core.MocksDir += "/"
+		configuration.Alfred.Core.MocksDir += "/"
 	}
 
 	return configuration
