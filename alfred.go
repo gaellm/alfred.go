@@ -19,12 +19,17 @@ package main
 import (
 	"alfred/internal/conf"
 	"alfred/internal/log"
+	"alfred/internal/server"
 	"alfred/pkg/files"
 	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"os"
+	"os/signal"
 	"strings"
+	"sync"
+	"syscall"
 )
 
 // Afred is a mock, written in Go (Golang), for performance testing. Alfred
@@ -54,4 +59,35 @@ func main() {
 	}
 
 	log.Info(ctx, "mock files loaded: "+strings.Join(matches, ","))
+
+	//------------------
+	// Server Management
+	//------------------
+	var asyncRunningJobsCount sync.WaitGroup //Use to count process to wait before shutdowning
+	classicServer, err := server.BuildServer(&configuration, &asyncRunningJobsCount)
+	if err != nil {
+		log.Error(ctx, "Server Panic", errors.New("error during preparing controller..."+err.Error()))
+		panic("Error during preparing controller..." + err.Error())
+	}
+
+	// Let's go !!!
+	server.Serve(ctx, &configuration, classicServer)
+
+	//---------------------
+	// Wait for a kill
+	//---------------------
+	// Set up channel on which to send signal notifications.
+	// We must use a buffered channel or risk missing the signal
+	// if we're not ready to receive when the signal is sent.
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
+
+	// Block until a signal is received.
+	<-c
+
+	//---------------------
+	// Shutdown Management
+	//---------------------
+	// Stop externalApiServer
+	server.Stop(ctx, classicServer, &asyncRunningJobsCount)
 }
