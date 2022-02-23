@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 )
 
 //Build the service
@@ -30,6 +31,36 @@ func BuildServer(conf *conf.Config, asyncRunningJobsCount *sync.WaitGroup) (*htt
 	}, nil
 }
 
+func GinLogger() gin.HandlerFunc {
+
+	return func(c *gin.Context) {
+
+		start := time.Now()
+		path := c.Request.URL.Path
+		query := c.Request.URL.RawQuery
+		method := c.Request.Method
+		ip := c.ClientIP()
+		proto := c.Request.Proto
+		status := c.Writer.Status()
+		c.Next()
+		cost := time.Since(start)
+
+		message := fmt.Sprintf("%s %s %s?%s %d",
+			method,
+			proto,
+			path,
+			query,
+			status,
+		)
+
+		log.Info(context.Background(), message,
+			zap.String("ip", ip),
+			zap.String("status", fmt.Sprintf("%d", status)),
+			zap.String("duration", cost.String()),
+		)
+	}
+}
+
 //Create Handler with endpoints to serve: used from service or from tests
 func BuildHandler(conf *conf.Config, asyncRunningJobsCount *sync.WaitGroup) (http.Handler, error) {
 	//log
@@ -38,7 +69,8 @@ func BuildHandler(conf *conf.Config, asyncRunningJobsCount *sync.WaitGroup) (htt
 
 	// Create controller
 	gin.SetMode(gin.ReleaseMode)
-	controller := gin.Default()
+	controller := gin.New()
+	controller.Use(GinLogger())
 
 	{
 		//Disable slash forwarding
