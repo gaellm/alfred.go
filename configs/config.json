@@ -1,0 +1,13 @@
+{
+    "alfred": {
+        "name": "alfred-mock",
+        "version" : "1.0",
+        "core": {
+            "mocks-dir": "user-files/mocks/",
+            "listen": {
+                "ip": "127.0.0.1",
+                "port": "8081"
+            }
+        }
+    }
+}

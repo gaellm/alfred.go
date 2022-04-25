@@ -31,6 +31,12 @@ const (
 
 	//Component version configuration key name.
 	VERSION_KEY = "alfred.version"
+
+	//Listening interface key name.
+	LISTEN_INTERFACE = "alfred.core.listen.ip"
+
+	//Listening port key name.
+	LISTEN_PORT = "alfred.core.listen.port"
 )
 
 // Struct where all config keys are stored.
@@ -47,16 +53,22 @@ type AlfredConfig struct {
 	Core CoreConfig `mapstructure:"core"`
 }
 
+type ListenConfig struct {
+	Ip   string `mapstructure:"ip"`
+	Port string `mapstructure:"port"`
+}
+
 // Struct where all core config keys are stored.
 type CoreConfig struct {
-	MocksDir string `mapstructure:"mocks-dir"`
+	MocksDir string       `mapstructure:"mocks-dir"`
+	Listen   ListenConfig `mapstructure:"listen"`
 }
 
 //Configure the Viper instance.
 func configureViper(v *viper.Viper) (*viper.Viper, error) {
 
 	v.SetConfigName("config")
-	v.SetConfigType("toml")
+	v.SetConfigType("json")
 	v.AddConfigPath("configs")
 
 	err := v.ReadInConfig() // Find and read the config file
@@ -96,6 +108,8 @@ func buildConfiguration() (Config, error) {
 	v.SetDefault(NAME_KEY, "")
 	v.SetDefault(MOCKS_DIR_KEY, "")
 	v.SetDefault(VERSION_KEY, "")
+	//v.SetDefault(LISTEN_INTERFACE, "")
+	//v.SetDefault(LISTEN_PORT, "")
 
 	//Unmarshall loaded config into our struct
 	err = v.Unmarshal(&configuration)

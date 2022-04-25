@@ -27,10 +27,11 @@ func BuildServer(conf *conf.Config, asyncRunningJobsCount *sync.WaitGroup) (*htt
 	//Here, the server is listening on ALL interfaces and binding on 'conf.Port' port
 	return &http.Server{
 		Handler: handler,
-		Addr:    fmt.Sprintf("0.0.0.0:%v", 8080),
+		Addr:    fmt.Sprintf("%s:%s", conf.Alfred.Core.Listen.Ip, conf.Alfred.Core.Listen.Port),
 	}, nil
 }
 
+//Provide an handler to log access
 func GinLogger() gin.HandlerFunc {
 
 	return func(c *gin.Context) {

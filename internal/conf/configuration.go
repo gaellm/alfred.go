@@ -17,16 +17,17 @@
 package conf
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/imdario/mergo"
 )
 
 const (
-	DEFAULT_NAME      = "alfred-mock"
-	DEFAULT_VERSION   = "1.0"
-	DEFAULT_MOCKS_DIR = "user-files/mocks/"
+	DEFAULT_NAME             = "alfred-mock"
+	DEFAULT_VERSION          = "1.0"
+	DEFAULT_MOCKS_DIR        = "user-files/mocks/"
+	DEFAULT_LISTEN_INTERFACE = "0.0.0.0"
+	DEFAULT_LISTEN_PORT      = "8080"
 )
 
 var DefaultConfig = Config{
@@ -35,13 +36,15 @@ var DefaultConfig = Config{
 		Version: DEFAULT_VERSION,
 		Core: CoreConfig{
 			MocksDir: DEFAULT_MOCKS_DIR,
+			Listen: ListenConfig{
+				Ip:   DEFAULT_LISTEN_INTERFACE,
+				Port: DEFAULT_LISTEN_PORT,
+			},
 		},
 	},
 }
 
 func mergeConfigs(dst *Config, src Config) error {
-
-	fmt.Println(dst)
 
 	if err := mergo.Merge(dst, src); err != nil {
 		return err
