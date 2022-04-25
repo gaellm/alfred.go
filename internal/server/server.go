@@ -81,6 +81,12 @@ func BuildHandler(conf *conf.Config, asyncRunningJobsCount *sync.WaitGroup) (htt
 		controller.GET("/", func(c *gin.Context) {
 			c.String(http.StatusOK, "Hello")
 		})
+
+		//Add Routes
+		controller.Handle("GET", "/Alfred", func(c *gin.Context) {
+			c.String(http.StatusOK, "Hello sir !")
+		})
+
 	}
 
 	return controller, nil
