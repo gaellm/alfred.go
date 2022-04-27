@@ -14,34 +14,26 @@
  * limitations under the License.
  */
 
-package files
+package mock
 
-import (
-	"errors"
-	"path/filepath"
-)
+type MockRequest struct {
+	Method string `json:"method"`
+	Url    string `json:"url"`
+}
 
-//Find files using a pattern and a target directory.
-func FindFiles(targetDir string, pattern ...string) ([]string, error) {
+type Mock struct {
+	Name    string      `json:"name"`
+	Request MockRequest `json:"request"`
+}
 
-	//This is the files slice
-	var files []string
+func (m Mock) GetRequestMethod() string {
+	return m.Request.Method
+}
 
-	for _, v := range pattern {
-		matches, err := filepath.Glob(targetDir + v)
-		if err != nil {
-			return matches, errors.New("incorrect file path")
-		}
+func (m Mock) GetRequestUrl() string {
+	return m.Request.Url
+}
 
-		if len(matches) != 0 {
-			//fmt.Println("Found : ", matches)
-			files = append(files, matches...)
-		}
-	}
-
-	if len(files) < 1 {
-		return files, errors.New("no files")
-	}
-
-	return files, nil
+func (m Mock) GetName() string {
+	return m.Name
 }

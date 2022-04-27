@@ -19,6 +19,7 @@ package main
 import (
 	"alfred/internal/conf"
 	"alfred/internal/log"
+	"alfred/internal/mock"
 	"alfred/internal/server"
 	"alfred/pkg/files"
 	"context"
@@ -59,6 +60,8 @@ func main() {
 	}
 
 	log.Info(ctx, "mock files loaded: "+strings.Join(matches, ","))
+
+	mock.TestMock()
 
 	//------------------
 	// Server Management
