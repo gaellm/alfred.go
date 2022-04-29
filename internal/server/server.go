@@ -19,6 +19,7 @@ package server
 import (
 	"alfred/internal/conf"
 	"alfred/internal/log"
+	"alfred/internal/mock"
 	"context"
 	"errors"
 	"fmt"
@@ -32,9 +33,9 @@ import (
 )
 
 //Build the service
-func BuildServer(conf *conf.Config, asyncRunningJobsCount *sync.WaitGroup) (*http.Server, error) {
+func BuildServer(conf *conf.Config, asyncRunningJobsCount *sync.WaitGroup, mocks mock.MockCollection) (*http.Server, error) {
 	//Build all endpoints handler
-	handler, err := BuildHandler(conf, asyncRunningJobsCount)
+	handler, err := BuildHandler(conf, asyncRunningJobsCount, mocks)
 	if err != nil {
 		return nil, err
 	}
@@ -79,7 +80,7 @@ func GinLogger() gin.HandlerFunc {
 }
 
 //Create Handler with endpoints to serve: used from service or from tests
-func BuildHandler(conf *conf.Config, asyncRunningJobsCount *sync.WaitGroup) (http.Handler, error) {
+func BuildHandler(conf *conf.Config, asyncRunningJobsCount *sync.WaitGroup, mocks mock.MockCollection) (http.Handler, error) {
 	//log
 	log.Info(context.Background(), "Starting")
 	defer log.LogPanic()
@@ -94,15 +95,12 @@ func BuildHandler(conf *conf.Config, asyncRunningJobsCount *sync.WaitGroup) (htt
 		controller.RedirectTrailingSlash = false
 
 		//Add Routes
-		controller.GET("/", func(c *gin.Context) {
-			c.String(http.StatusOK, "Hello")
+		controller.Handle("GET", "/", func(c *gin.Context) {
+			c.String(http.StatusOK, "Hello sir ! (Alfred)")
 		})
 
-		//Add Routes
-		controller.Handle("GET", "/Alfred", func(c *gin.Context) {
-			c.String(http.StatusOK, "Hello sir !")
-		})
-
+		// Create mocks routes
+		AddMocksRoutes(controller, mocks)
 	}
 
 	return controller, nil

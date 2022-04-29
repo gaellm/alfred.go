@@ -14,19 +14,34 @@
  * limitations under the License.
  */
 
-package mock
+package server
 
 import (
-	"encoding/json"
+	"alfred/internal/log"
+	"alfred/internal/mock"
+	"context"
+
+	"github.com/gin-gonic/gin"
 )
 
-func BuildMockFromJson(jsonData []byte) (Mock, error) {
+func AddMocksRoutes(c *gin.Engine, mocks mock.MockCollection) {
 
-	var mock Mock
-	err := json.Unmarshal(jsonData, &mock)
-	if err != nil {
-		return mock, err
+	ctx := context.Background()
+
+	for _, m := range mocks {
+
+		m := m
+
+		log.Debug(ctx, "Creating route for mock '"+m.GetName()+"' "+"with url '"+m.GetRequestUrl()+"' "+"body '"+m.GetResponseBody()+"'")
+
+		c.Handle(m.GetRequestMethod(), m.GetRequestUrl(), func(c *gin.Context) {
+
+			for k, v := range m.GetResponseHeaders() {
+				c.Header(k, v)
+			}
+			c.String(m.GetResponseStatus(), m.GetResponseBody())
+
+		})
+
 	}
-
-	return mock, nil
 }

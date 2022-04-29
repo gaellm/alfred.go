@@ -70,7 +70,7 @@ func main() {
 	// Server Management
 	//------------------
 	var asyncRunningJobsCount sync.WaitGroup //Use to count process to wait before shutdowning
-	classicServer, err := server.BuildServer(&configuration, &asyncRunningJobsCount)
+	classicServer, err := server.BuildServer(&configuration, &asyncRunningJobsCount, mockCollection)
 	if err != nil {
 		log.Error(ctx, "Server Panic", errors.New("error during preparing controller..."+err.Error()))
 		panic("Error during preparing controller..." + err.Error())

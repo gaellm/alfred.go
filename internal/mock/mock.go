@@ -21,13 +21,25 @@ type MockRequest struct {
 	Url    string `json:"url"`
 }
 
+type MockResponse struct {
+	Status  int               `json:"status"`
+	Body    string            `json:"body"`
+	Headers map[string]string `json:"headers"`
+}
+
 type Mock struct {
-	Name    string      `json:"name"`
-	Request MockRequest `json:"request"`
+	Name     string       `json:"name"`
+	Request  MockRequest  `json:"request"`
+	Response MockResponse `json:"response"`
 }
 
 func (m Mock) GetRequestMethod() string {
-	return m.Request.Method
+
+	if m.Request.Method != "" {
+		return m.Request.Method
+	}
+
+	return "GET"
 }
 
 func (m Mock) GetRequestUrl() string {
@@ -35,5 +47,22 @@ func (m Mock) GetRequestUrl() string {
 }
 
 func (m Mock) GetName() string {
-	return m.Name
+
+	if m.Name != "" {
+		return m.Name
+	}
+
+	return m.GetRequestMethod() + "-" + m.GetRequestUrl()
+}
+
+func (m Mock) GetResponseStatus() int {
+	return m.Response.Status
+}
+
+func (m Mock) GetResponseBody() string {
+	return m.Response.Body
+}
+
+func (m Mock) GetResponseHeaders() map[string]string {
+	return m.Response.Headers
 }
