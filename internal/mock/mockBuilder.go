@@ -14,34 +14,19 @@
  * limitations under the License.
  */
 
-package files
+package mock
 
 import (
-	"errors"
-	"path/filepath"
+	"encoding/json"
 )
 
-//Find files using a pattern and a target directory.
-func FindFiles(targetDir string, pattern ...string) ([]string, error) {
+func BuildMockFromJson(jsonData []byte) (Mock, error) {
 
-	//This is the files slice
-	var files []string
-
-	for _, v := range pattern {
-		matches, err := filepath.Glob(targetDir + v)
-		if err != nil {
-			return matches, errors.New("incorrect file path")
-		}
-
-		if len(matches) != 0 {
-			//fmt.Println("Found : ", matches)
-			files = append(files, matches...)
-		}
+	var mock Mock
+	err := json.Unmarshal(jsonData, &mock)
+	if err != nil {
+		return mock, err
 	}
 
-	if len(files) < 1 {
-		return files, errors.New("no files")
-	}
-
-	return files, nil
+	return mock, nil
 }

@@ -1,8 +1,25 @@
+/*
+ * Copyright The Alfred.go Authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package server
 
 import (
 	"alfred/internal/conf"
 	"alfred/internal/log"
+	"alfred/internal/mock"
 	"context"
 	"errors"
 	"fmt"
@@ -16,9 +33,9 @@ import (
 )
 
 //Build the service
-func BuildServer(conf *conf.Config, asyncRunningJobsCount *sync.WaitGroup) (*http.Server, error) {
+func BuildServer(conf *conf.Config, asyncRunningJobsCount *sync.WaitGroup, mocks mock.MockCollection) (*http.Server, error) {
 	//Build all endpoints handler
-	handler, err := BuildHandler(conf, asyncRunningJobsCount)
+	handler, err := BuildHandler(conf, asyncRunningJobsCount, mocks)
 	if err != nil {
 		return nil, err
 	}
@@ -63,7 +80,7 @@ func GinLogger() gin.HandlerFunc {
 }
 
 //Create Handler with endpoints to serve: used from service or from tests
-func BuildHandler(conf *conf.Config, asyncRunningJobsCount *sync.WaitGroup) (http.Handler, error) {
+func BuildHandler(conf *conf.Config, asyncRunningJobsCount *sync.WaitGroup, mocks mock.MockCollection) (http.Handler, error) {
 	//log
 	log.Info(context.Background(), "Starting")
 	defer log.LogPanic()
@@ -78,15 +95,12 @@ func BuildHandler(conf *conf.Config, asyncRunningJobsCount *sync.WaitGroup) (htt
 		controller.RedirectTrailingSlash = false
 
 		//Add Routes
-		controller.GET("/", func(c *gin.Context) {
-			c.String(http.StatusOK, "Hello")
+		controller.Handle("GET", "/", func(c *gin.Context) {
+			c.String(http.StatusOK, "Hello sir ! (Alfred)")
 		})
 
-		//Add Routes
-		controller.Handle("GET", "/Alfred", func(c *gin.Context) {
-			c.String(http.StatusOK, "Hello sir !")
-		})
-
+		// Create mocks routes
+		AddMocksRoutes(controller, mocks)
 	}
 
 	return controller, nil

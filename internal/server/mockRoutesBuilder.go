@@ -14,34 +14,34 @@
  * limitations under the License.
  */
 
-package files
+package server
 
 import (
-	"errors"
-	"path/filepath"
+	"alfred/internal/log"
+	"alfred/internal/mock"
+	"context"
+
+	"github.com/gin-gonic/gin"
 )
 
-//Find files using a pattern and a target directory.
-func FindFiles(targetDir string, pattern ...string) ([]string, error) {
+func AddMocksRoutes(c *gin.Engine, mocks mock.MockCollection) {
 
-	//This is the files slice
-	var files []string
+	ctx := context.Background()
 
-	for _, v := range pattern {
-		matches, err := filepath.Glob(targetDir + v)
-		if err != nil {
-			return matches, errors.New("incorrect file path")
-		}
+	for _, m := range mocks {
 
-		if len(matches) != 0 {
-			//fmt.Println("Found : ", matches)
-			files = append(files, matches...)
-		}
+		m := m
+
+		log.Debug(ctx, "Creating route for mock '"+m.GetName()+"' "+"with url '"+m.GetRequestUrl()+"' "+"body '"+m.GetResponseBody()+"'")
+
+		c.Handle(m.GetRequestMethod(), m.GetRequestUrl(), func(c *gin.Context) {
+
+			for k, v := range m.GetResponseHeaders() {
+				c.Header(k, v)
+			}
+			c.String(m.GetResponseStatus(), m.GetResponseBody())
+
+		})
+
 	}
-
-	if len(files) < 1 {
-		return files, errors.New("no files")
-	}
-
-	return files, nil
 }

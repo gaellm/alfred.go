@@ -19,15 +19,14 @@ package main
 import (
 	"alfred/internal/conf"
 	"alfred/internal/log"
+	"alfred/internal/mock"
 	"alfred/internal/server"
-	"alfred/pkg/files"
 	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
 	"os/signal"
-	"strings"
 	"sync"
 	"syscall"
 )
@@ -52,19 +51,26 @@ func main() {
 	ctx := context.Background()
 	log.Debug(ctx, "alfred configuration initialized with: "+string(configurationJson))
 
-	matches, err := files.FindFiles(configuration.Alfred.Core.MocksDir, "*.json")
-	if err != nil {
-		log.Error(ctx, "Application Panic", errors.New("error during mocks load..."+err.Error()))
-		panic("error during mocks load......" + err.Error())
-	}
+	/*
+		matches, err := files.FindFiles(configuration.Alfred.Core.MocksDir, "*.json")
+		if err != nil {
+			log.Error(ctx, "Application Panic", errors.New("error during mocks load..."+err.Error()))
+			panic("error during mocks load......" + err.Error())
+		}
 
-	log.Info(ctx, "mock files loaded: "+strings.Join(matches, ","))
+		log.Info(ctx, "mock files loaded: "+strings.Join(matches, ","))
+
+		mock.TestMock()
+	*/
+
+	mockCollection := mock.CreateMockCollectionFromFolder(configuration.Alfred.Core.MocksDir)
+	log.Info(ctx, "mock files loaded: "+mockCollection[0].GetName())
 
 	//------------------
 	// Server Management
 	//------------------
 	var asyncRunningJobsCount sync.WaitGroup //Use to count process to wait before shutdowning
-	classicServer, err := server.BuildServer(&configuration, &asyncRunningJobsCount)
+	classicServer, err := server.BuildServer(&configuration, &asyncRunningJobsCount, mockCollection)
 	if err != nil {
 		log.Error(ctx, "Server Panic", errors.New("error during preparing controller..."+err.Error()))
 		panic("Error during preparing controller..." + err.Error())
