@@ -17,6 +17,7 @@
 package mock
 
 import (
+	"bytes"
 	"encoding/json"
 )
 
@@ -27,6 +28,15 @@ func BuildMockFromJson(jsonData []byte) (Mock, error) {
 	if err != nil {
 		return mock, err
 	}
+
+	//clean json before save
+
+	buffer := new(bytes.Buffer)
+	err = json.Compact(buffer, jsonData)
+	if err != nil {
+		return mock, err
+	}
+	mock.SaveJsonBytes(buffer.Bytes())
 
 	return mock, nil
 }

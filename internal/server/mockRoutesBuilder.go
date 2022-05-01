@@ -20,8 +20,10 @@ import (
 	"alfred/internal/log"
 	"alfred/internal/mock"
 	"context"
+	"io/ioutil"
 
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 )
 
 func AddMocksRoutes(c *gin.Engine, mocks mock.MockCollection) {
@@ -32,13 +34,30 @@ func AddMocksRoutes(c *gin.Engine, mocks mock.MockCollection) {
 
 		m := m
 
-		log.Debug(ctx, "Creating route for mock '"+m.GetName()+"' "+"with url '"+m.GetRequestUrl()+"' "+"body '"+m.GetResponseBody()+"'")
-
+		log.Debug(ctx, "Creating route for mock '"+m.GetName()+"'", zap.String("mock-conf", string(m.GetJsonBytes())))
 		c.Handle(m.GetRequestMethod(), m.GetRequestUrl(), func(c *gin.Context) {
 
+			data, err := ioutil.ReadAll(c.Request.Body)
+			if err != nil {
+				log.Error(c.Request.Context(), "failed to read request body", err)
+			}
+
+			log.Debug(c.Request.Context(), "received a mock request",
+				zap.String("request-path", c.Request.RequestURI),
+				zap.String("request-body", string(data)),
+			)
+
+			log.Debug(c.Request.Context(), "gona use mock '"+m.GetName()+"'",
+				zap.String("mock-conf", string(m.GetJsonBytes())),
+				zap.String("response-body", m.GetResponseBody()),
+			)
+
+			//set headers
 			for k, v := range m.GetResponseHeaders() {
 				c.Header(k, v)
 			}
+
+			//set status and body to end response
 			c.String(m.GetResponseStatus(), m.GetResponseBody())
 
 		})

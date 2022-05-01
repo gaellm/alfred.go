@@ -28,9 +28,10 @@ type MockResponse struct {
 }
 
 type Mock struct {
-	Name     string       `json:"name"`
-	Request  MockRequest  `json:"request"`
-	Response MockResponse `json:"response"`
+	Name      string       `json:"name"`
+	Request   MockRequest  `json:"request"`
+	Response  MockResponse `json:"response"`
+	jsonBytes []byte
 }
 
 func (m Mock) GetRequestMethod() string {
@@ -40,6 +41,16 @@ func (m Mock) GetRequestMethod() string {
 	}
 
 	return "GET"
+}
+
+func (m *Mock) SaveJsonBytes(jsonData []byte) {
+
+	m.jsonBytes = jsonData
+}
+
+func (m Mock) GetJsonBytes() []byte {
+
+	return m.jsonBytes
 }
 
 func (m Mock) GetRequestUrl() string {
