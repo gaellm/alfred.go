@@ -16,22 +16,38 @@
 
 package mock
 
-import "strings"
+import (
+	"errors"
+	"strings"
+)
 
-func CreateHelper(helperString string, helperTarget string) Helper {
+var (
+	TYPES = [...]string{"req"}
+)
+
+func CreateHelper(helperString string, helperTarget string) (Helper, error) {
 
 	var h Helper
 
 	h.String = helperString
 	h.Target = helperTarget
-	h.Type = detectHelperType(helperTarget)
 
-	return h
+	var err error
+	h.Type, err = detectHelperType(helperTarget)
+
+	return h, err
 }
 
-func detectHelperType(helperTarget string) string {
+func detectHelperType(helperTarget string) (string, error) {
 
 	s := strings.Split(helperTarget, ".")
 
-	return s[1]
+	for _, t := range TYPES {
+		if s[1] == t {
+			return s[1], nil
+		}
+	}
+
+	return "", errors.New("helper type '" + s[1] + "' is not handled by Alfred")
+
 }
