@@ -17,8 +17,13 @@
 package mock
 
 import (
+	"alfred/internal/log"
 	"bytes"
+	"context"
 	"encoding/json"
+	"regexp"
+
+	"go.uber.org/zap"
 )
 
 func BuildMockFromJson(jsonData []byte) (Mock, error) {
@@ -30,7 +35,6 @@ func BuildMockFromJson(jsonData []byte) (Mock, error) {
 	}
 
 	//clean json before save
-
 	buffer := new(bytes.Buffer)
 	err = json.Compact(buffer, jsonData)
 	if err != nil {
@@ -38,5 +42,18 @@ func BuildMockFromJson(jsonData []byte) (Mock, error) {
 	}
 	mock.SaveJsonBytes(buffer.Bytes())
 
+	for _, helperStrings := range findHelpersStrings(buffer.Bytes()) {
+		h := CreateHelper(helperStrings[0], helperStrings[1])
+		log.Debug(context.Background(), "helper found :'"+h.Target+"'"+" of type : '"+h.Type+"'", zap.String("mock-name", mock.GetName()))
+
+		mock.AddHelper(h)
+	}
+
 	return mock, nil
+}
+
+func findHelpersStrings(jsonData []byte) [][]string {
+
+	r := regexp.MustCompile(`{{[ ]?([^{^}]*?)[ ]?}}`)
+	return r.FindAllStringSubmatch(string(jsonData), -1)
 }

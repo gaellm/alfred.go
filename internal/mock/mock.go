@@ -32,6 +32,24 @@ type Mock struct {
 	Request   MockRequest  `json:"request"`
 	Response  MockResponse `json:"response"`
 	jsonBytes []byte
+	helpers   []Helper
+}
+
+type Helper struct {
+	Type   string
+	String string
+	Value  string
+	Target string
+}
+
+func (m *Mock) AddHelper(helper Helper) {
+
+	m.helpers = append(m.helpers, helper)
+}
+
+func (m Mock) HasHelpers() bool {
+
+	return len(m.helpers) > 0
 }
 
 func (m Mock) GetRequestMethod() string {

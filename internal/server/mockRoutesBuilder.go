@@ -57,6 +57,8 @@ func AddMocksRoutes(c *gin.Engine, mocks mock.MockCollection) {
 				c.Header(k, v)
 			}
 
+			//time.Sleep(5 * time.Second)
+
 			//set status and body to end response
 			c.String(m.GetResponseStatus(), m.GetResponseBody())
 
