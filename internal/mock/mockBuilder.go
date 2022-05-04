@@ -22,7 +22,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"fmt"
 	"regexp"
 
 	"go.uber.org/zap"
@@ -47,8 +46,6 @@ func BuildMockFromJson(jsonData []byte) (Mock, error) {
 	//find and create helpers
 	for _, helperStrings := range findHelpersStrings(buffer.Bytes()) {
 
-		mock := mock
-
 		h, err := helper.CreateHelper(helperStrings[0], helperStrings[1])
 		if err != nil {
 			log.Error(context.Background(), "error creating helper", err, zap.String("mock-name", mock.GetName()))
@@ -58,8 +55,6 @@ func BuildMockFromJson(jsonData []byte) (Mock, error) {
 		mock.AddHelper(h)
 
 	}
-
-	fmt.Println("mock variable scope pb" + mock.helpers["req"][0].Target)
 
 	return mock, nil
 }

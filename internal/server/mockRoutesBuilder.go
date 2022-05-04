@@ -52,8 +52,6 @@ func AddMocksRoutes(c *gin.Engine, mocks mock.MockCollection) {
 
 			if m.HasHelperType(helper.REQUEST) {
 				log.Debug(c.Request.Context(), "start to populate request helper(s)")
-			} else {
-				log.Debug(c.Request.Context(), "no helpers to populate with request")
 			}
 
 			//set headers
