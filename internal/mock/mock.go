@@ -16,6 +16,10 @@
 
 package mock
 
+import (
+	"alfred/internal/helper"
+)
+
 type MockRequest struct {
 	Method string `json:"method"`
 	Url    string `json:"url"`
@@ -32,24 +36,34 @@ type Mock struct {
 	Request   MockRequest  `json:"request"`
 	Response  MockResponse `json:"response"`
 	jsonBytes []byte
-	helpers   []Helper
+	helpers   map[string][]helper.Helper
 }
 
-type Helper struct {
-	Type   string
-	String string
-	Value  string
-	Target string
+func (m *Mock) AddHelper(h helper.Helper) {
+
+	if !m.HasHelper() {
+		m.helpers = make(map[string][]helper.Helper)
+	}
+
+	if m.HasHelperType(h.Type) {
+		m.helpers[h.Type] = append(m.helpers[h.Type], h)
+		return
+	}
+
+	var helpers []helper.Helper
+	helpers = append(helpers, h)
+
+	m.helpers[h.Type] = helpers
 }
 
-func (m *Mock) AddHelper(helper Helper) {
-
-	m.helpers = append(m.helpers, helper)
-}
-
-func (m Mock) HasHelpers() bool {
+func (m Mock) HasHelper() bool {
 
 	return len(m.helpers) > 0
+}
+
+func (m Mock) HasHelperType(helperType string) bool {
+
+	return len(m.helpers[helperType]) > 0
 }
 
 func (m Mock) GetRequestMethod() string {

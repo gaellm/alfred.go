@@ -17,10 +17,12 @@
 package mock
 
 import (
+	"alfred/internal/helper"
 	"alfred/internal/log"
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"regexp"
 
 	"go.uber.org/zap"
@@ -45,14 +47,19 @@ func BuildMockFromJson(jsonData []byte) (Mock, error) {
 	//find and create helpers
 	for _, helperStrings := range findHelpersStrings(buffer.Bytes()) {
 
-		h, err := CreateHelper(helperStrings[0], helperStrings[1])
+		mock := mock
+
+		h, err := helper.CreateHelper(helperStrings[0], helperStrings[1])
 		if err != nil {
 			log.Error(context.Background(), "error creating helper", err, zap.String("mock-name", mock.GetName()))
 		}
 
 		log.Debug(context.Background(), "helper found :'"+h.Target+"'"+" of type : '"+h.Type+"'", zap.String("mock-name", mock.GetName()))
 		mock.AddHelper(h)
+
 	}
+
+	fmt.Println("mock variable scope pb" + mock.helpers["req"][0].Target)
 
 	return mock, nil
 }

@@ -14,40 +14,23 @@
  * limitations under the License.
  */
 
-package mock
+package helper
 
-import (
-	"errors"
-	"strings"
-)
+const REQUEST = "req"
 
-var (
-	TYPES = [...]string{"req"}
-)
-
-func CreateHelper(helperString string, helperTarget string) (Helper, error) {
-
-	var h Helper
-
-	h.String = helperString
-	h.Target = helperTarget
-
-	var err error
-	h.Type, err = detectHelperType(helperTarget)
-
-	return h, err
+type Helper struct {
+	Type   string
+	String string
+	value  string
+	Target string
 }
 
-func detectHelperType(helperTarget string) (string, error) {
+func (h *Helper) HasValue() bool {
 
-	s := strings.Split(helperTarget, ".")
+	return false
+}
 
-	for _, t := range TYPES {
-		if s[1] == t {
-			return s[1], nil
-		}
-	}
+func (h *Helper) SetValue(v string) {
 
-	return "", errors.New("helper type '" + s[1] + "' is not handled by Alfred")
-
+	h.value = v
 }

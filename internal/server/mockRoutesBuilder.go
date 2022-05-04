@@ -17,6 +17,7 @@
 package server
 
 import (
+	"alfred/internal/helper"
 	"alfred/internal/log"
 	"alfred/internal/mock"
 	"context"
@@ -42,15 +43,18 @@ func AddMocksRoutes(c *gin.Engine, mocks mock.MockCollection) {
 				log.Error(c.Request.Context(), "failed to read request body", err)
 			}
 
-			log.Debug(c.Request.Context(), "received a mock request",
+			log.Debug(c.Request.Context(), "received a mock request, gona use mock '"+m.GetName()+"'",
 				zap.String("request-path", c.Request.RequestURI),
 				zap.String("request-body", string(data)),
-			)
-
-			log.Debug(c.Request.Context(), "gona use mock '"+m.GetName()+"'",
 				zap.String("mock-conf", string(m.GetJsonBytes())),
 				zap.String("response-body", m.GetResponseBody()),
 			)
+
+			if m.HasHelperType(helper.REQUEST) {
+				log.Debug(c.Request.Context(), "start to populate request helper(s)")
+			} else {
+				log.Debug(c.Request.Context(), "no helpers to populate with request")
+			}
 
 			//set headers
 			for k, v := range m.GetResponseHeaders() {
