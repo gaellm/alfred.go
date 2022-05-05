@@ -16,16 +16,35 @@
 
 package helper
 
-const REQUEST = "req"
+import (
+	"errors"
+	"io/ioutil"
 
-type Helper struct {
-	Type   string
-	String string
-	Value  string
-	Target string
+	"github.com/gin-gonic/gin"
+)
+
+func RequestHelperWatcher(c *gin.Context, h map[string][]Helper) (map[string][]Helper, error) {
+
+	data, err := ioutil.ReadAll(c.Request.Body)
+	if err != nil {
+		return h, err
+	}
+
+	switch c.ContentType() {
+	case "application/json":
+		helpers, err := jsonWatcher(data)
+		if err != nil {
+			return h, err
+		}
+		return helpers, nil
+	}
+
+	return h, errors.New("content type unknown")
+
 }
 
-func (h Helper) HasValue() bool {
+func jsonWatcher(d []byte) (map[string][]Helper, error) {
 
-	return false
+	return make(map[string][]Helper), errors.New("TODO")
+
 }

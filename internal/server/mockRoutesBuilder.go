@@ -43,6 +43,8 @@ func AddMocksRoutes(c *gin.Engine, mocks mock.MockCollection) {
 				log.Error(c.Request.Context(), "failed to read request body", err)
 			}
 
+			//c.ContentType()
+
 			log.Debug(c.Request.Context(), "received a mock request, gona use mock '"+m.GetName()+"'",
 				zap.String("request-path", c.Request.RequestURI),
 				zap.String("request-body", string(data)),
