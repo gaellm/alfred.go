@@ -17,10 +17,11 @@
 package helper
 
 import (
-	"encoding/json"
 	"errors"
 	"regexp"
 	"strings"
+
+	"github.com/tidwall/gjson"
 )
 
 func RequestHelperWatcher(data []byte, contentType string, h map[string][]Helper) (map[string][]Helper, error) {
@@ -40,21 +41,17 @@ func RequestHelperWatcher(data []byte, contentType string, h map[string][]Helper
 
 func jsonWatcher(d []byte, h map[string][]Helper) (map[string][]Helper, error) {
 
-	var jsonData map[string]interface{}
-	if err := json.Unmarshal(d, &jsonData); err != nil {
-		return h, err
-	}
-
 	for i, helper := range h[REQUEST] {
 
 		if helper.Value != "" {
 			continue
 		}
 
+		// to improve
 		r := regexp.MustCompile(`alfred\.req\.(.*)`)
 		helperTarget := r.FindStringSubmatch(helper.Target)[1]
 
-		h[REQUEST][i].Value = jsonData[helperTarget].(string)
+		h[REQUEST][i].Value = gjson.Get(string(d), helperTarget).String()
 
 	}
 
