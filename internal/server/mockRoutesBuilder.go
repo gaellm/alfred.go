@@ -54,6 +54,12 @@ func AddMocksRoutes(c *gin.Engine, mocks mock.MockCollection) {
 
 			if m.HasHelperType(helper.REQUEST) {
 				log.Debug(c.Request.Context(), "start to populate request helper(s)")
+				helpersPopulated, err := helper.RequestHelperWatcher(data, c.ContentType(), m.GetHelpers())
+				if err != nil {
+					log.Warn(c.Request.Context(), "helpers request watcher in error", err)
+				}
+				m.UpdateHelpers(helpersPopulated)
+				log.Debug(c.Request.Context(), "helper(s) populated", zap.String("helpers", m.GetJsonHelpers()))
 			}
 
 			//set headers

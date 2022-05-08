@@ -17,22 +17,17 @@
 package helper
 
 import (
+	"encoding/json"
 	"errors"
-	"io/ioutil"
-
-	"github.com/gin-gonic/gin"
+	"regexp"
+	"strings"
 )
 
-func RequestHelperWatcher(c *gin.Context, h map[string][]Helper) (map[string][]Helper, error) {
+func RequestHelperWatcher(data []byte, contentType string, h map[string][]Helper) (map[string][]Helper, error) {
 
-	data, err := ioutil.ReadAll(c.Request.Body)
-	if err != nil {
-		return h, err
-	}
+	if strings.Contains(contentType, "json") {
 
-	switch c.ContentType() {
-	case "application/json":
-		helpers, err := jsonWatcher(data)
+		helpers, err := jsonWatcher(data, h)
 		if err != nil {
 			return h, err
 		}
@@ -43,8 +38,25 @@ func RequestHelperWatcher(c *gin.Context, h map[string][]Helper) (map[string][]H
 
 }
 
-func jsonWatcher(d []byte) (map[string][]Helper, error) {
+func jsonWatcher(d []byte, h map[string][]Helper) (map[string][]Helper, error) {
 
-	return make(map[string][]Helper), errors.New("TODO")
+	var jsonData map[string]interface{}
+	if err := json.Unmarshal(d, &jsonData); err != nil {
+		return h, err
+	}
 
+	for i, helper := range h[REQUEST] {
+
+		if helper.Value != "" {
+			continue
+		}
+
+		r := regexp.MustCompile(`alfred\.req\.(.*)`)
+		helperTarget := r.FindStringSubmatch(helper.Target)[1]
+
+		h[REQUEST][i].Value = jsonData[helperTarget].(string)
+
+	}
+
+	return h, nil
 }

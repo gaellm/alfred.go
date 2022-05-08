@@ -61,6 +61,30 @@ func (m Mock) HasHelper() bool {
 	return len(m.helpers) > 0
 }
 
+func (m *Mock) UpdateHelpers(h map[string][]helper.Helper) {
+
+	m.helpers = h
+}
+
+func (m Mock) GetHelpers() map[string][]helper.Helper {
+
+	return m.helpers
+}
+
+func (m Mock) GetJsonHelpers() string {
+
+	var jsonHelpers string
+	helpers := m.GetHelpers()
+
+	for i := range helpers {
+		for y := range helpers[i] {
+			jsonHelpers += helpers[i][y].GetJsonMarshal()
+
+		}
+	}
+	return jsonHelpers
+}
+
 func (m Mock) HasHelperType(helperType string) bool {
 
 	return len(m.helpers[helperType]) > 0

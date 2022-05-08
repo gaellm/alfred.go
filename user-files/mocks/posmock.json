@@ -6,7 +6,7 @@
     },
     "response": {
         "status": 200,
-        "body": "Hello world! {{ alfred.req.test }}",
+        "body": "Hello world! {{ alfred.req.test.titi }}",
         "headers": {
             "Content-Type": "text/plain"
         }

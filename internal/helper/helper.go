@@ -16,6 +16,8 @@
 
 package helper
 
+import "encoding/json"
+
 const REQUEST = "req"
 
 type Helper struct {
@@ -28,4 +30,10 @@ type Helper struct {
 func (h Helper) HasValue() bool {
 
 	return false
+}
+
+func (h Helper) GetJsonMarshal() string {
+
+	jsonH, _ := json.Marshal(h)
+	return string(jsonH)
 }
