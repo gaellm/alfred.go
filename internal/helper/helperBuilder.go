@@ -18,6 +18,7 @@ package helper
 
 import (
 	"errors"
+	"regexp"
 	"strings"
 )
 
@@ -30,7 +31,9 @@ func CreateHelper(helperString string, helperTarget string) (Helper, error) {
 	var h Helper
 
 	h.String = helperString
-	h.Target = helperTarget
+
+	r := regexp.MustCompile(`alfred\.req\.(.*)`)
+	h.Target = r.FindStringSubmatch(helperTarget)[1]
 
 	var err error
 	h.Type, err = detectHelperType(helperTarget)

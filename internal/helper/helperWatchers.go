@@ -18,7 +18,6 @@ package helper
 
 import (
 	"errors"
-	"regexp"
 	"strings"
 
 	"github.com/tidwall/gjson"
@@ -47,11 +46,7 @@ func jsonWatcher(d []byte, h map[string][]Helper) (map[string][]Helper, error) {
 			continue
 		}
 
-		// to improve
-		r := regexp.MustCompile(`alfred\.req\.(.*)`)
-		helperTarget := r.FindStringSubmatch(helper.Target)[1]
-
-		h[REQUEST][i].Value = gjson.Get(string(d), helperTarget).String()
+		h[REQUEST][i].Value = gjson.Get(string(d), helper.Target).String()
 
 	}
 
