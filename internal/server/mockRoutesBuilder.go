@@ -38,6 +38,8 @@ func AddMocksRoutes(c *gin.Engine, mocks mock.MockCollection) {
 		log.Debug(ctx, "Creating route for mock '"+m.GetName()+"'", zap.String("mock-conf", string(m.GetJsonBytes())))
 		c.Handle(m.GetRequestMethod(), m.GetRequestUrl(), func(c *gin.Context) {
 
+			requestRecover(c)
+
 			data, err := ioutil.ReadAll(c.Request.Body)
 			if err != nil {
 				log.Error(c.Request.Context(), "failed to read request body", err,
