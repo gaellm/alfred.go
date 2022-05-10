@@ -26,9 +26,6 @@ import (
 
 func RequestHelperWatcher(data []byte, contentType string, h []Helper) ([]Helper, error) {
 
-	println("RequestHelperWatcher h ref:")
-	println(&h)
-
 	//JSON
 	if strings.Contains(contentType, "json") {
 
@@ -55,9 +52,6 @@ func RequestHelperWatcher(data []byte, contentType string, h []Helper) ([]Helper
 			return h, err
 		}
 
-		println("RequestHelperWatcher helpers ref:")
-		println(&helpers)
-
 		return helpers, nil
 	}
 
@@ -65,9 +59,6 @@ func RequestHelperWatcher(data []byte, contentType string, h []Helper) ([]Helper
 }
 
 func jsonWatcher(d []byte, h []Helper) ([]Helper, error) {
-
-	println("jsonWatcher h ref:")
-	println(&h)
 
 	for i, helper := range h {
 

@@ -55,9 +55,26 @@ func (m Mock) UpdateRequestHelpers(h []helper.Helper) Mock {
 	return m
 }
 
+// An array of truct keep references to struct, so we have to clone
+// the array before returning it.
 func (m Mock) GetRequestHelpers() []helper.Helper {
 
-	return m.requestHelpers
+	var clones []helper.Helper
+
+	for _, h := range m.requestHelpers {
+
+		var clone helper.Helper
+		{
+			clone.Type = h.Type
+			clone.String = h.String
+			clone.Value = h.Value
+			clone.Target = h.Target
+		}
+
+		clones = append(clones, clone)
+	}
+
+	return clones
 }
 
 func (m Mock) GetJsonHelpers() string {
