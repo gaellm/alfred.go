@@ -2,7 +2,7 @@
     "name": "postmock",
     "request": {
         "method": "POST",
-        "url": "/some/thing"
+        "url": "/some/thing/:test.tyty"
     },
     "response": {
         "status": 200,

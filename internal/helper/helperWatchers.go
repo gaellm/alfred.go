@@ -18,16 +18,24 @@ package helper
 
 import (
 	"errors"
+	"net/url"
 	"strings"
 
 	xj "github.com/basgys/goxml2json"
+	"github.com/gin-gonic/gin"
 	"github.com/tidwall/gjson"
 )
 
-func RequestHelperWatcher(data []byte, contentType string, h []Helper) ([]Helper, error) {
+func RequestHelperWatcher(data []byte, c *gin.Context, h []Helper) ([]Helper, error) {
+
+	//HTTP query
+	h = queryWatcher(c.Request.URL.Query(), h)
+
+	//URL params
+	h = paramWatcher(c.Params, h)
 
 	//JSON
-	if strings.Contains(contentType, "json") {
+	if strings.Contains(c.ContentType(), "json") {
 
 		helpers, err := jsonWatcher(data, h)
 		if err != nil {
@@ -37,7 +45,10 @@ func RequestHelperWatcher(data []byte, contentType string, h []Helper) ([]Helper
 		return helpers, nil
 
 		//XML
-	} else if strings.Contains(contentType, "xml") {
+	} else if strings.Contains(c.ContentType(), "xml") {
+
+		query := c.Request.URL.Query()
+		println(query.Get("monparam"))
 
 		xml := strings.NewReader(string(data))
 
@@ -70,4 +81,38 @@ func jsonWatcher(d []byte, h []Helper) ([]Helper, error) {
 	}
 
 	return h, nil
+}
+
+func queryWatcher(query url.Values, h []Helper) []Helper {
+
+	if len(query) > 0 {
+
+		for i, helper := range h {
+
+			if helper.Value != "" {
+				continue
+			}
+
+			h[i].Value = query.Get(helper.Target)
+		}
+	}
+
+	return h
+}
+
+func paramWatcher(params gin.Params, h []Helper) []Helper {
+
+	if len(params) > 0 {
+
+		for i, helper := range h {
+
+			if helper.Value != "" {
+				continue
+			}
+
+			h[i].Value = params.ByName(helper.Target)
+		}
+	}
+
+	return h
 }

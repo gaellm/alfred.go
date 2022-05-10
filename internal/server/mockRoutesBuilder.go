@@ -65,7 +65,7 @@ func AddMocksRoutes(c *gin.Engine, mocks mock.MockCollection) {
 				)
 
 				// Populate mock request helpers
-				helpersPopulated, err := helper.RequestHelperWatcher(data, c.ContentType(), m.GetRequestHelpers())
+				helpersPopulated, err := helper.RequestHelperWatcher(data, c, m.GetRequestHelpers())
 				if err != nil {
 					log.Warn(c.Request.Context(), "helpers request watcher in error", err,
 						zap.String("mock-name", m.GetName()),
