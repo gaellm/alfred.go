@@ -16,6 +16,10 @@
 
 package mock
 
+import (
+	"alfred/internal/helper"
+)
+
 type MockRequest struct {
 	Method string `json:"method"`
 	Url    string `json:"url"`
@@ -28,10 +32,61 @@ type MockResponse struct {
 }
 
 type Mock struct {
-	Name      string       `json:"name"`
-	Request   MockRequest  `json:"request"`
-	Response  MockResponse `json:"response"`
-	jsonBytes []byte
+	Name           string       `json:"name"`
+	Request        MockRequest  `json:"request"`
+	Response       MockResponse `json:"response"`
+	jsonBytes      []byte
+	requestHelpers []helper.Helper
+}
+
+func (m *Mock) AddRequestHelper(h helper.Helper) {
+
+	m.requestHelpers = append(m.requestHelpers, h)
+}
+
+func (m Mock) HasRequestHelper() bool {
+
+	return len(m.requestHelpers) > 0
+}
+
+func (m Mock) UpdateRequestHelpers(h []helper.Helper) Mock {
+
+	m.requestHelpers = h
+	return m
+}
+
+// An array of truct keep references to struct, so we have to clone
+// the array before returning it.
+func (m Mock) GetRequestHelpers() []helper.Helper {
+
+	var clones []helper.Helper
+
+	for _, h := range m.requestHelpers {
+
+		var clone helper.Helper
+		{
+			clone.Type = h.Type
+			clone.String = h.String
+			clone.Value = h.Value
+			clone.Target = h.Target
+		}
+
+		clones = append(clones, clone)
+	}
+
+	return clones
+}
+
+func (m Mock) GetJsonHelpers() string {
+
+	var jsonHelpers string
+	helpers := m.GetRequestHelpers()
+
+	for i := range helpers {
+
+		jsonHelpers += helpers[i].GetJsonMarshal()
+	}
+	return jsonHelpers
 }
 
 func (m Mock) GetRequestMethod() string {
