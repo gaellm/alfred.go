@@ -6,9 +6,9 @@
     },
     "response": {
         "status": 200,
-        "body": "Hello world! {{ alfred.req.test.titi }}",
+        "body": "Hello world! {{ alfred.req.test.titi }} and {{ alfred.req.test.toto }} and re {{ alfred.req.test.toto }} but not {{ alfred.req.test.tutu }} and {{ alfred.req.test.tyty }}",
         "headers": {
             "Content-Type": "text/plain"
         }
     }
-  }
+}
