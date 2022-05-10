@@ -48,19 +48,23 @@ func AddMocksRoutes(c *gin.Engine, mocks mock.MockCollection) {
 				zap.String("request-body", string(data)),
 				zap.String("mock-conf", string(m.GetJsonBytes())),
 				zap.String("response-body", m.GetResponseBody()),
-				zap.String("helpers", m.GetJsonHelpers()),
 			)
 
 			if m.HasRequestHelper() {
 				log.Debug(c.Request.Context(), "start to populate request helper(s)")
 
-				//https://go.dev/play/p/XIlNWtO14zW
 				helpersPopulated, err := helper.RequestHelperWatcher(data, c.ContentType(), m.GetRequestHelpers())
 				if err != nil {
 					log.Warn(c.Request.Context(), "helpers request watcher in error", err)
 				}
 
-				log.Debug(c.Request.Context(), "helper(s) populated", zap.String("helpers", m.UpdateRequestHelpers(helpersPopulated).GetJsonHelpers()))
+				log.Debug(c.Request.Context(), "helper(s) populated '"+m.GetName()+"'",
+					zap.String("request-path", c.Request.RequestURI),
+					zap.String("request-body", string(data)),
+					zap.String("mock-conf", string(m.GetJsonBytes())),
+					zap.String("response-body", m.GetResponseBody()),
+					zap.String("helpers", m.UpdateRequestHelpers(helpersPopulated).GetJsonHelpers()),
+				)
 			}
 
 			//set headers
