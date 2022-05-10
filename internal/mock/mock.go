@@ -32,62 +32,44 @@ type MockResponse struct {
 }
 
 type Mock struct {
-	Name      string       `json:"name"`
-	Request   MockRequest  `json:"request"`
-	Response  MockResponse `json:"response"`
-	jsonBytes []byte
-	helpers   map[string][]helper.Helper
+	Name           string       `json:"name"`
+	Request        MockRequest  `json:"request"`
+	Response       MockResponse `json:"response"`
+	jsonBytes      []byte
+	requestHelpers []helper.Helper
 }
 
-func (m *Mock) AddHelper(h helper.Helper) {
+func (m *Mock) AddRequestHelper(h helper.Helper) {
 
-	if !m.HasHelper() {
-		m.helpers = make(map[string][]helper.Helper)
-	}
-
-	if m.HasHelperType(h.Type) {
-		m.helpers[h.Type] = append(m.helpers[h.Type], h)
-		return
-	}
-
-	var helpers []helper.Helper
-	helpers = append(helpers, h)
-
-	m.helpers[h.Type] = helpers
+	m.requestHelpers = append(m.requestHelpers, h)
 }
 
-func (m Mock) HasHelper() bool {
+func (m Mock) HasRequestHelper() bool {
 
-	return len(m.helpers) > 0
+	return len(m.requestHelpers) > 0
 }
 
-func (m *Mock) UpdateHelpers(h map[string][]helper.Helper) {
+func (m Mock) UpdateRequestHelpers(h []helper.Helper) Mock {
 
-	m.helpers = h
+	m.requestHelpers = h
+	return m
 }
 
-func (m Mock) GetHelpers() map[string][]helper.Helper {
+func (m Mock) GetRequestHelpers() []helper.Helper {
 
-	return m.helpers
+	return m.requestHelpers
 }
 
 func (m Mock) GetJsonHelpers() string {
 
 	var jsonHelpers string
-	helpers := m.GetHelpers()
+	helpers := m.GetRequestHelpers()
 
 	for i := range helpers {
-		for y := range helpers[i] {
-			jsonHelpers += helpers[i][y].GetJsonMarshal()
 
-		}
+		jsonHelpers += helpers[i].GetJsonMarshal()
 	}
 	return jsonHelpers
-}
-
-func (m Mock) HasHelperType(helperType string) bool {
-
-	return len(m.helpers[helperType]) > 0
 }
 
 func (m Mock) GetRequestMethod() string {

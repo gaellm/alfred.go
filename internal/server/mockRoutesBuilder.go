@@ -43,8 +43,6 @@ func AddMocksRoutes(c *gin.Engine, mocks mock.MockCollection) {
 				log.Error(c.Request.Context(), "failed to read request body", err)
 			}
 
-			//c.ContentType()
-
 			log.Debug(c.Request.Context(), "received a mock request, gona use mock '"+m.GetName()+"'",
 				zap.String("request-path", c.Request.RequestURI),
 				zap.String("request-body", string(data)),
@@ -52,14 +50,24 @@ func AddMocksRoutes(c *gin.Engine, mocks mock.MockCollection) {
 				zap.String("response-body", m.GetResponseBody()),
 			)
 
-			if m.HasHelperType(helper.REQUEST) {
+			if m.HasRequestHelper() {
 				log.Debug(c.Request.Context(), "start to populate request helper(s)")
-				helpersPopulated, err := helper.RequestHelperWatcher(data, c.ContentType(), m.GetHelpers())
+
+				println("-> m.GetHelpers() before RequestHelperWatcher value: " + m.GetRequestHelpers()[0].Value)
+
+				println("m.GetRequestHelpers() reference before watcher:")
+
+				//https://go.dev/play/p/XIlNWtO14zW
+				helpersPopulated, err := helper.RequestHelperWatcher(data, c.ContentType(), m.GetRequestHelpers())
 				if err != nil {
 					log.Warn(c.Request.Context(), "helpers request watcher in error", err)
 				}
-				m.UpdateHelpers(helpersPopulated)
-				log.Debug(c.Request.Context(), "helper(s) populated", zap.String("helpers", m.GetJsonHelpers()))
+
+				//debug
+				println("-> m.GetHelpers() value: " + m.GetRequestHelpers()[0].Value)
+				println("-> helpersPopulated value: " + helpersPopulated[0].Value)
+
+				log.Debug(c.Request.Context(), "helper(s) populated", zap.String("helpers", m.UpdateRequestHelpers(helpersPopulated).GetJsonHelpers()))
 			}
 
 			//set headers

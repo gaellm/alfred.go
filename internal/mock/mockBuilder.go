@@ -52,7 +52,7 @@ func BuildMockFromJson(jsonData []byte) (Mock, error) {
 		}
 
 		log.Debug(context.Background(), "helper found :'"+h.Target+"'"+" of type : '"+h.Type+"'", zap.String("mock-name", mock.GetName()))
-		mock.AddHelper(h)
+		mock.AddRequestHelper(h)
 
 	}
 
