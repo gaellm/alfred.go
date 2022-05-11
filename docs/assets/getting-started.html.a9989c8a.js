@@ -1,0 +1,1 @@
+const t={key:"v-fb0f0066",path:"/guide/getting-started.html",title:"Alfred.go",lang:"en-US",frontmatter:{},excerpt:"",headers:[{level:2,title:"Documentation",slug:"documentation",children:[]}],git:{},filePathRelative:"guide/getting-started.md"};export{t as data};
