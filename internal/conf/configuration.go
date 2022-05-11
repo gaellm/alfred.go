@@ -61,7 +61,8 @@ func GetConfiguration() (Config, error) {
 		return Config{}, err
 	}
 
-	if mergeConfigs(&configuration, DefaultConfig); err != nil {
+	err = mergeConfigs(&configuration, DefaultConfig)
+	if err != nil {
 		return Config{}, err
 	}
 
