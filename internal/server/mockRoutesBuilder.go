@@ -85,6 +85,14 @@ func AddMocksRoutes(c *gin.Engine, mocks mock.MockCollection) {
 
 				// Replace helpers inside mock response body
 				body, err = helper.HelperReplacement(m.GetResponseBody(), helpersPopulated)
+
+				// Replace helpers inside mock response headers
+				for k, v := range m.GetResponseHeaders() {
+
+					v, err = helper.HelperReplacement(v, helpersPopulated)
+					c.Header(k, v)
+				}
+
 				if err != nil {
 					log.Warn(c.Request.Context(), "error during helpers replacement", err,
 						zap.String("request-path", c.Request.RequestURI),
@@ -93,11 +101,13 @@ func AddMocksRoutes(c *gin.Engine, mocks mock.MockCollection) {
 						zap.String("response-body", m.GetResponseBody()),
 						zap.String("helpers", m.UpdateRequestHelpers(helpersPopulated).GetJsonHelpers()))
 				}
-			}
 
-			//set headers
-			for k, v := range m.GetResponseHeaders() {
-				c.Header(k, v)
+			} else {
+
+				//set headers
+				for k, v := range m.GetResponseHeaders() {
+					c.Header(k, v)
+				}
 			}
 
 			//time.Sleep(5 * time.Second)

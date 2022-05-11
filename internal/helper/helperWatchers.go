@@ -18,6 +18,7 @@ package helper
 
 import (
 	"errors"
+	"net/http"
 	"net/url"
 	"strings"
 
@@ -28,45 +29,24 @@ import (
 
 func RequestHelperWatcher(data []byte, c *gin.Context, h []Helper) ([]Helper, error) {
 
-	//HTTP query
+	var err error
+
+	//Watch HTTP query
 	h = queryWatcher(c.Request.URL.Query(), h)
 
-	//URL params
+	//Watch URL params
 	h = paramWatcher(c.Params, h)
 
-	//JSON
-	if strings.Contains(c.ContentType(), "json") {
-
-		helpers, err := jsonWatcher(data, h)
-		if err != nil {
-			return h, err
-		}
-
-		return helpers, nil
-
-		//XML
-	} else if strings.Contains(c.ContentType(), "xml") {
-
-		query := c.Request.URL.Query()
-		println(query.Get("monparam"))
-
-		xml := strings.NewReader(string(data))
-
-		//https://github.com/basgys/goxml2json
-		json, err := xj.Convert(xml)
-		if err != nil {
-			return h, err
-		}
-
-		helpers, err := jsonWatcher(json.Bytes(), h)
-		if err != nil {
-			return h, err
-		}
-
-		return helpers, nil
+	//Watch HTTP body
+	h, err = bodyWatcher(data, c, h)
+	if err != nil {
+		return h, err
 	}
 
-	return h, errors.New("content type unknown")
+	//Watch HTTP headers
+	h = headersWatcher(c.Request.Header, h)
+
+	return h, err
 }
 
 func jsonWatcher(d []byte, h []Helper) ([]Helper, error) {
@@ -111,6 +91,71 @@ func paramWatcher(params gin.Params, h []Helper) []Helper {
 			}
 
 			h[i].Value = params.ByName(helper.Target)
+		}
+	}
+
+	return h
+}
+
+func bodyWatcher(data []byte, c *gin.Context, h []Helper) ([]Helper, error) {
+
+	//JSON
+	if strings.Contains(c.ContentType(), "json") {
+
+		helpers, err := jsonWatcher(data, h)
+		if err != nil {
+			return h, err
+		}
+
+		return helpers, nil
+
+		//XML
+	} else if strings.Contains(c.ContentType(), "xml") {
+
+		xml := strings.NewReader(string(data))
+
+		//https://github.com/basgys/goxml2json
+		json, err := xj.Convert(xml)
+		if err != nil {
+			return h, err
+		}
+
+		helpers, err := jsonWatcher(json.Bytes(), h)
+		if err != nil {
+			return h, err
+		}
+
+		return helpers, nil
+	}
+
+	return h, errors.New("content type unknown")
+}
+
+func headersWatcher(headers http.Header, h []Helper) []Helper {
+
+	if len(headers) > 0 {
+
+		for i, helper := range h {
+
+			if helper.Value != "" {
+				continue
+			}
+
+			//iterate headers and break if found
+			for header, headerArray := range headers {
+
+				if strings.EqualFold(header, helper.Target) {
+
+					//get one value if multi header case
+					for _, headerValue := range headerArray {
+
+						h[i].Value = headerValue
+						break
+					}
+
+					break
+				}
+			}
 		}
 	}
 
