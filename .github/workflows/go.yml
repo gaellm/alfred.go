@@ -1,0 +1,58 @@
+name: Go
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Go
+      uses: actions/setup-go@v3
+      with:
+        go-version: 1.18
+        
+    - name: Run golangci-lint
+      # You may pin to the exact commit or the version.
+      # uses: golangci/golangci-lint-action@537aa1903e5d359d0b27dbc19ddd22c5087f3fbc
+      uses: golangci/golangci-lint-action@v3.2.0
+      #with:
+        # version of golangci-lint to use in form of v1.2 or v1.2.3 or `latest` to use the latest version
+        #version: # optional
+        # golangci-lint command line arguments
+        #args: # optional, default is 
+        # golangci-lint working directory, default is project root
+        #working-directory: # optional
+        # the token is used for fetching patch of a pull request to show only new issues
+        #github-token: # default is ${{ github.token }}
+        # if set to true and the action runs on a pull request - the action outputs only newly found issues
+        #only-new-issues: 
+        # if set to true then the all caching functionality will be complete disabled, takes precedence over all other caching options.
+
+        #skip-cache: 
+        # if set to true then the action doesn't cache or restore ~/go/pkg.
+        #skip-pkg-cache: 
+        # if set to true then the action doesn't cache or restore ~/.cache/go-build.
+        #skip-build-cache: 
+        
+    - name: golang-security-action
+      # You may pin to the exact commit or the version.
+      # uses: Ynniss/golang-security-action@cb6559433c01cbe2c6d357d7c731eefe03641ad3
+      uses: Ynniss/golang-security-action@v0.1.3
+      #with:
+        # path to the config file gosec will use
+        #CONF_PATH: # optional
+        # path to the code that will be analyzed
+        #CODE_PATH: # default is .
+
+    - name: Build
+      run: go build -v ./...
+
+    - name: Test
+      run: go test -v ./...
