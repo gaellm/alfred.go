@@ -121,7 +121,10 @@ func Serve(main_ctx context.Context, conf *conf.Config, server *http.Server) {
 
 	//Start to serve
 	go func() {
-		server.Serve(listener)
+		err := server.Serve(listener)
+		if err != nil {
+			log.Error(main_ctx, "Error at server start", err)
+		}
 	}()
 }
 
