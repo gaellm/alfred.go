@@ -1,4 +1,4 @@
-<a href="https://github.com/gaellm/alfred.go/actions/workflows/build.yml"><img align="right" src="https://github.com/gaellm/alfred.go/actions/workflows/build.yml/badge.svg?branch=main"></a>
+<a href="https://github.com/gaellm/alfred.go/actions/workflows/build.yml"><img align="right" src="https://github.com/gaellm/alfred.go/actions/workflows/build.yml/badge.svg?branch=main"></a><br>
 
 <img align="right" width="500px" src="https://repository-images.githubusercontent.com/447978404/5ba210c2-9e56-463a-88f2-7aa1a8ea55b2">
 
