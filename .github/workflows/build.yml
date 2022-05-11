@@ -7,22 +7,32 @@ on:
     branches: [ main ]
 
 jobs:
-  linting:
-    name: Run golangci-lint
-    uses: golangci/golangci-lint-action@v3.2.0
+  dependency-review:
+    name: Run a dependency review
+    runs-on: ubuntu-latest
+    steps:
+      - name: 'Checkout Repository'
+        uses: actions/checkout@v3
+      - name: 'Dependency Review'
+        uses: actions/dependency-review-action@v1
 
-  quality-security:
-    needs: linting
-    name: SonarCloud Scan
-    uses: SonarSource/sonarcloud-github-action@v1.6
-    with:
-      args: >
-        -Dsonar.organization=gaellm
-        -Dsonar.projectKey=gaellm_alfred.go
-      projectBaseDir: .
+  lint-secure:
+    name: Run golangci-lint and SonarCloud Scan
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: 'Run golangci-lint'
+      uses: golangci/golangci-lint-action@v3.2.0
+    - name: 'SonarCloud Scan'
+      uses: SonarSource/sonarcloud-github-action@v1.6
+      with:
+        args: >
+          -Dsonar.organization=gaellm
+          -Dsonar.projectKey=gaellm_alfred.go
+        projectBaseDir: .
 
   build:
-    needs: [linting, quality-security]
+    needs: [lint-secure, dependency-review]
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
