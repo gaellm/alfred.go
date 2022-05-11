@@ -1,5 +1,3 @@
-<p style="text-align: center;">![CI][Badge-GitHub]</p>
-
 <img align="right" width="500px" src="https://repository-images.githubusercontent.com/447978404/5ba210c2-9e56-463a-88f2-7aa1a8ea55b2">
 
 # Alfred.go
