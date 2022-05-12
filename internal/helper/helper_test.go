@@ -16,24 +16,20 @@
 
 package helper
 
-import "encoding/json"
+import "testing"
 
-const REQUEST = "req"
+func TestHasValue(t *testing.T) {
 
-type Helper struct {
-	Type   string
-	String string
-	Value  string
-	Target string
-}
+	helper := Helper{"req", "{{ alfred.req.test }}", "", "test"}
 
-func (h Helper) HasValue() bool {
+	if helper.HasValue() {
+		t.Errorf("Helper HasValue is: true, want: false.")
+	}
 
-	return h.Value != ""
-}
+	helper.Value = "test"
 
-func (h Helper) GetJsonMarshal() string {
+	if !helper.HasValue() {
+		t.Errorf("Helper HasValue is: false, want: true.")
+	}
 
-	jsonH, _ := json.Marshal(h)
-	return string(jsonH)
 }
