@@ -53,3 +53,9 @@ func detectHelperType(helperTarget string) (string, error) {
 
 	return "", errors.New("helper type '" + s[1] + "' is not handled by Alfred")
 }
+
+func FindHelpersStrings(jsonData []byte) [][]string {
+
+	r := regexp.MustCompile(`{{[ ]?([^{^}]*?)[ ]?}}`)
+	return r.FindAllStringSubmatch(string(jsonData), -1)
+}

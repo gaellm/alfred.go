@@ -22,7 +22,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"regexp"
 
 	"go.uber.org/zap"
 )
@@ -44,7 +43,7 @@ func BuildMockFromJson(jsonData []byte) (Mock, error) {
 	mock.SaveJsonBytes(buffer.Bytes())
 
 	//find and create helpers
-	for _, helperStrings := range findHelpersStrings(buffer.Bytes()) {
+	for _, helperStrings := range helper.FindHelpersStrings(buffer.Bytes()) {
 
 		h, err := helper.CreateHelper(helperStrings[0], helperStrings[1])
 		if err != nil {
@@ -57,10 +56,4 @@ func BuildMockFromJson(jsonData []byte) (Mock, error) {
 	}
 
 	return mock, nil
-}
-
-func findHelpersStrings(jsonData []byte) [][]string {
-
-	r := regexp.MustCompile(`{{[ ]?([^{^}]*?)[ ]?}}`)
-	return r.FindAllStringSubmatch(string(jsonData), -1)
 }
