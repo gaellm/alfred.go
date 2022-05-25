@@ -19,12 +19,14 @@ package helper
 import "encoding/json"
 
 const REQUEST = "req"
+const PARAM_NAME = "name"
 
 type Helper struct {
 	Type   string
 	String string
 	Value  string
 	Target string
+	Name   string
 }
 
 func (h Helper) HasValue() bool {
@@ -36,4 +38,18 @@ func (h Helper) GetJsonMarshal() string {
 
 	jsonH, _ := json.Marshal(h)
 	return string(jsonH)
+}
+
+func (h Helper) Clone() Helper {
+
+	var clone Helper
+	{
+		clone.Type = h.Type
+		clone.String = h.String
+		clone.Value = h.Value
+		clone.Target = h.Target
+		clone.Name = h.Name
+	}
+
+	return clone
 }

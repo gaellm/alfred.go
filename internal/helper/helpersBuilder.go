@@ -29,9 +29,16 @@ var (
 func createHelper(helperString string, helperTarget string) (Helper, error) {
 
 	var h Helper
+	params := getHelperStringParams(helperTarget)
+
+	helperName, exists := params[PARAM_NAME]
+	if exists {
+		h.Name = helperName
+	}
 
 	h.String = helperString
 
+	//TODO
 	r := regexp.MustCompile(`alfred\.req\.(.*)`)
 	h.Target = r.FindStringSubmatch(helperTarget)[1]
 
@@ -56,8 +63,72 @@ func detectHelperType(helperTarget string) (string, error) {
 
 func findHelpersStrings(jsonData []byte) [][]string {
 
+	var helpersStrings [][]string
+
 	r := regexp.MustCompile(`{{[ ]?([^{^}]*?)[ ]?}}`)
-	return r.FindAllStringSubmatch(string(jsonData), -1)
+
+	allStringSubmatch := r.FindAllStringSubmatch(string(jsonData), -1)
+
+	// keep unique
+	for _, stringSubmatch := range allStringSubmatch {
+
+		founded := false
+		for _, submatch := range helpersStrings {
+
+			if stringSubmatch[1] == submatch[1] {
+				founded = true
+				continue
+			}
+		}
+
+		if !founded {
+			helpersStrings = append(helpersStrings, stringSubmatch)
+		}
+	}
+	return helpersStrings
+}
+
+func isKnownParam(param string) bool {
+
+	knownParams := [...]string{PARAM_NAME}
+
+	for _, knownParam := range knownParams {
+
+		if knownParam == param {
+			return true
+		}
+	}
+
+	return false
+}
+
+func getHelperStringParams(helperStr string) map[string]string {
+
+	params := make(map[string]string)
+
+	//Get helpers params
+	paramsRegexp := regexp.MustCompile(`@(\w*):'([^']*)'`)
+	paramsStringsSubmatch := paramsRegexp.FindAllStringSubmatch(string(helperStr), -1)
+
+	for _, paramStringsSubmatch := range paramsStringsSubmatch {
+
+		if len(paramStringsSubmatch) > 1 && isKnownParam(paramStringsSubmatch[1]) {
+			params[paramStringsSubmatch[1]] = paramStringsSubmatch[2]
+		}
+	}
+
+	/*
+		if len(paramsStringsSubmatch) > 1 {
+			println(paramsStringsSubmatch[0][0])
+			println(paramsStringsSubmatch[0][1])
+			println(paramsStringsSubmatch[0][2])
+
+			println(paramsStringsSubmatch[1][0])
+			println(paramsStringsSubmatch[1][1])
+			println(paramsStringsSubmatch[1][2])
+		}*/
+
+	return params
 }
 
 func HelpersBuilder(buffer []byte) ([]Helper, error) {

@@ -62,16 +62,7 @@ func (m Mock) GetRequestHelpers() []helper.Helper {
 	var clones []helper.Helper
 
 	for _, h := range m.requestHelpers {
-
-		var clone helper.Helper
-		{
-			clone.Type = h.Type
-			clone.String = h.String
-			clone.Value = h.Value
-			clone.Target = h.Target
-		}
-
-		clones = append(clones, clone)
+		clones = append(clones, h.Clone())
 	}
 
 	return clones

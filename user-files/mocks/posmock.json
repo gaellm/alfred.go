@@ -6,7 +6,7 @@
     },
     "response": {
         "status": 200,
-        "body": "Hello world! {{ alfred.req.test.titi }} and {{ alfred.req.test.toto }} and re {{ alfred.req.test.toto }} but not {{ alfred.req.test.tutu }}",
+        "body": "Hello world! {{ alfred.req.test.titi }} and {{ alfred.req.test.toto @name:'toto1' @param:'paramtest' }} and re {{ alfred.req.test.toto }} but not {{ alfred.req.test.tutu }}",
         "headers": {
             "Content-Type": "text/plain",
             "Test": "{{ alfred.req.test.tyty }}"

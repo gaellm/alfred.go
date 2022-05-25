@@ -20,7 +20,7 @@ import "testing"
 
 func TestHasValue(t *testing.T) {
 
-	helper := Helper{"req", "{{ alfred.req.test }}", "", "test"}
+	helper := Helper{"req", "{{ alfred.req.test }}", "", "test", ""}
 
 	if helper.HasValue() {
 		t.Errorf("Helper HasValue is: true, want: false.")

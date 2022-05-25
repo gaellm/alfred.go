@@ -117,7 +117,7 @@ func Serve(main_ctx context.Context, conf *conf.Config, server *http.Server) {
 	}
 
 	//Log that's the bind is ok
-	log.Info(main_ctx, "Started Server")
+	log.Info(main_ctx, "Alfred started to serve on host "+conf.Alfred.Core.Listen.Ip+" and is listening at port "+conf.Alfred.Core.Listen.Port)
 
 	//Start to serve
 	go func() {
