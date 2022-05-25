@@ -26,7 +26,7 @@ var (
 	TYPES = [...]string{REQUEST}
 )
 
-func CreateHelper(helperString string, helperTarget string) (Helper, error) {
+func createHelper(helperString string, helperTarget string) (Helper, error) {
 
 	var h Helper
 
@@ -54,8 +54,27 @@ func detectHelperType(helperTarget string) (string, error) {
 	return "", errors.New("helper type '" + s[1] + "' is not handled by Alfred")
 }
 
-func FindHelpersStrings(jsonData []byte) [][]string {
+func findHelpersStrings(jsonData []byte) [][]string {
 
 	r := regexp.MustCompile(`{{[ ]?([^{^}]*?)[ ]?}}`)
 	return r.FindAllStringSubmatch(string(jsonData), -1)
+}
+
+func HelpersBuilder(buffer []byte) ([]Helper, error) {
+
+	var helpers []Helper
+	helpersStrings := findHelpersStrings(buffer)
+
+	//find and create helpers
+	for _, helperStrings := range helpersStrings {
+
+		h, err := createHelper(helperStrings[0], helperStrings[1])
+		if err != nil {
+			return helpers, err
+		}
+
+		helpers = append(helpers, h)
+	}
+
+	return helpers, nil
 }

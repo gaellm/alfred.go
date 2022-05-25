@@ -23,7 +23,7 @@ func TestCreateHelper(t *testing.T) {
 	helperString := "{{ alfred.req.test.titi }}"
 	helperTarget := "alfred.req.test.titi"
 
-	helper, err := CreateHelper(helperString, helperTarget)
+	helper, err := createHelper(helperString, helperTarget)
 	if err != nil {
 		t.Errorf("Create helper fail with error " + err.Error())
 	}
@@ -62,7 +62,7 @@ func TestFindHelpersStrings(t *testing.T) {
 	s0 := []string{"{{ alfred.req.test.titi }}", "{{ alfred.req.test.tyty }}"}
 	s1 := []string{"alfred.req.test.titi", "alfred.req.test.tyty"}
 
-	for _, helperStrings := range FindHelpersStrings(jsonData) {
+	for _, helperStrings := range findHelpersStrings(jsonData) {
 
 		if !isElementExist(s0, helperStrings[0]) {
 			t.Errorf("helperStrings[0] failed with '%s' value", helperStrings[0])

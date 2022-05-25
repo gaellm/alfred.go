@@ -43,16 +43,21 @@ func BuildMockFromJson(jsonData []byte) (Mock, error) {
 	mock.SaveJsonBytes(buffer.Bytes())
 
 	//find and create helpers
-	for _, helperStrings := range helper.FindHelpersStrings(buffer.Bytes()) {
+	helpers, err := helper.HelpersBuilder(buffer.Bytes())
+	if err != nil {
+		return mock, err
+	}
 
-		h, err := helper.CreateHelper(helperStrings[0], helperStrings[1])
-		if err != nil {
-			log.Error(context.Background(), "error creating helper", err, zap.String("mock-name", mock.GetName()))
+	for _, h := range helpers {
+
+		if h.Type == helper.REQUEST {
+
+			mock.AddRequestHelper(h)
+
 		}
 
 		log.Debug(context.Background(), "helper found :'"+h.Target+"'"+" of type : '"+h.Type+"'", zap.String("mock-name", mock.GetName()))
 		mock.AddRequestHelper(h)
-
 	}
 
 	return mock, nil
