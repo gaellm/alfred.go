@@ -20,10 +20,7 @@ import "testing"
 
 func TestCreateHelper(t *testing.T) {
 
-	helperString := "{{ alfred.req.test.titi }}"
-	helperTarget := "alfred.req.test.titi"
-
-	helper, err := createHelper(helperString, helperTarget)
+	helper, err := createHelper("{{ alfred.req.test.titi }}", "alfred.req.test.titi")
 	if err != nil {
 		t.Errorf("Create helper fail with error " + err.Error())
 	}
@@ -32,8 +29,8 @@ func TestCreateHelper(t *testing.T) {
 		t.Errorf("Helper HasValue is: true, want: false.")
 	}
 
-	if helper.String != helperString {
-		t.Errorf("Helper string is: %s, want: %s.", helper.String, helperString)
+	if helper.String != "{{ alfred.req.test.titi }}" {
+		t.Errorf("Helper string is: %s, want: %s.", helper.String, "{{ alfred.req.test.titi }}")
 	}
 
 	if helper.Target != "test.titi" {
@@ -43,6 +40,20 @@ func TestCreateHelper(t *testing.T) {
 	if helper.Type != "req" {
 		t.Errorf("Helper type is: %s, want: %s.", helper.Type, "req")
 	}
+
+	helperParam, errParam := createHelper("{{ alfred.req.test.titi @name:'toto' }}", "alfred.req.test.titi @name:'toto'")
+	if errParam != nil {
+		t.Errorf("Create helper fail with error " + err.Error())
+	}
+
+	if helperParam.Name != "toto" {
+		t.Errorf("Helper Name is not toto.")
+	}
+
+	if helperParam.Target != "test.titi" {
+		t.Errorf("Helper target is: %s, want: %s.", helperParam.Target, "test.titi")
+	}
+
 }
 
 func isElementExist(s []string, str string) bool {
