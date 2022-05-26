@@ -43,7 +43,6 @@ func TestCreateHelper(t *testing.T) {
 	if helper.Type != "req" {
 		t.Errorf("Helper type is: %s, want: %s.", helper.Type, "req")
 	}
-
 }
 
 func isElementExist(s []string, str string) bool {
