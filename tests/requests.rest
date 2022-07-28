@@ -1,0 +1,48 @@
+@baseUrl = http://localhost:9081
+
+###
+
+#light mock
+GET {{baseUrl}}/some/thing/light HTTP/1.1
+
+###
+
+#mymock
+GET {{baseUrl}}/some/thing HTTP/1.1
+
+###
+
+#postmock - xml
+POST {{baseUrl}}/some/thing/reqpathtytyvalue HTTP/1.1
+Content-Type: application/xml
+test.tutu: headertutuvalue
+
+<?xml version="1.0" encoding="UTF-8"?>
+<test version="0.6" generator="CGImap 0.0.2">
+   <bounds minlat="54.0889580" minlon="12.2487570" maxlat="54.0913900" maxlon="12.2524800"/>
+   <titi>xmltesttitivalue</titi><toto>xmltesttotovalue</toto>
+</test>
+
+
+###
+
+#postmock - json
+POST {{baseUrl}}/some/thing/reqpathtytyvalue HTTP/1.1
+Content-Type: application/json
+test.tutu: headertutuvalue
+
+{
+    "test":{
+        "titi": "jsontesttitivalue",
+        "toto": "jsontesttotovalue"
+    }
+}
+
+###
+
+#plaintext mock
+POST {{baseUrl}}/some/plaintext/reqpathtytyvalue HTTP/1.1
+Content-Type: text/plain
+test.tutu: headertutuvalue
+
+coucou ici c'est le test=super-test qui commence!

@@ -63,6 +63,24 @@ func jsonWatcher(d []byte, h []Helper) ([]Helper, error) {
 	return h, nil
 }
 
+func textWatcher(d []byte, h []Helper) ([]Helper, error) {
+
+	for i, helper := range h {
+
+		if helper.Value != "" || helper.Regex == nil {
+			continue
+		}
+
+		subMatch := helper.Regex.FindSubmatch(d)
+		if len(subMatch) > 1 {
+			h[i].Value = string(subMatch[1])
+		}
+
+	}
+
+	return h, nil
+}
+
 func queryWatcher(query url.Values, h []Helper) []Helper {
 
 	if len(query) > 0 {
@@ -121,6 +139,14 @@ func bodyWatcher(data []byte, c *gin.Context, h []Helper) ([]Helper, error) {
 		}
 
 		helpers, err := jsonWatcher(json.Bytes(), h)
+		if err != nil {
+			return h, err
+		}
+
+		return helpers, nil
+	} else if strings.Contains(c.ContentType(), "text") {
+
+		helpers, err := textWatcher(data, h)
 		if err != nil {
 			return h, err
 		}

@@ -1,0 +1,15 @@
+{
+    "name": "plaintextmock",
+    "request": {
+        "method": "POST",
+        "url": "/some/plaintext/:test.tyty"
+    },
+    "response": {
+        "status": 200,
+        "body": "Hello world! le test = {{ alfred.req.test @name:'testregex' @regex:'.*test=([^ ]*).*' }}",
+        "headers": {
+            "Content-Type": "text/plain",
+            "Test": "{{ alfred.req.test.tyty }}"
+        }
+    }
+}

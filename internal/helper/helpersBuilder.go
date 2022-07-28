@@ -38,12 +38,17 @@ func createHelper(helperString string, helperTarget string) (Helper, error) {
 
 	h.String = helperString
 
-	//Get target without params
-	r := regexp.MustCompile(`alfred\.\w*\.([^ ]*) ?@?`)
+	r := regexp.MustCompile(`alfred\.req\.([^ @]*).*`)
 	h.Target = r.FindStringSubmatch(helperTarget)[1]
 
 	var err error
 	h.Type, err = detectHelperType(helperTarget)
+
+	helperRegex, helperRegexExists := params[PARAM_REGEX]
+	if helperRegexExists {
+		h.Regex, _ = regexp.Compile(helperRegex)
+
+	}
 
 	return h, err
 }
@@ -65,35 +70,33 @@ func findHelpersStrings(jsonData []byte) [][]string {
 
 	var helpersStrings [][]string
 
-	r := regexp.MustCompile(`{{[ ]?([^{^}]*?)[ ]?}}`)
+	r := regexp.MustCompile(`{{[ ]?([^{}]*?)[ ]?}}`)
 
 	allStringSubmatch := r.FindAllStringSubmatch(string(jsonData), -1)
 
 	// keep unique
-	{
-		for _, stringSubmatch := range allStringSubmatch {
+	for _, stringSubmatch := range allStringSubmatch {
 
-			founded := false
-			for _, submatch := range helpersStrings {
+		founded := false
+		for _, submatch := range helpersStrings {
 
-				if stringSubmatch[1] == submatch[1] {
-					founded = true
-					continue
-				}
-			}
-
-			if !founded {
-				helpersStrings = append(helpersStrings, stringSubmatch)
+			if stringSubmatch[1] == submatch[1] {
+				founded = true
+				continue
 			}
 		}
-	}
 
+		if !founded {
+			helpersStrings = append(helpersStrings, stringSubmatch)
+		}
+	}
 	return helpersStrings
 }
 
 func isKnownParam(param string) bool {
 
-	knownParams := [...]string{PARAM_NAME}
+	//knownParams := [...]string{PARAM_NAME, PARAM_TYPE, PARAM_DESC}
+	knownParams := [...]string{PARAM_NAME, PARAM_REGEX}
 
 	for _, knownParam := range knownParams {
 
@@ -119,17 +122,6 @@ func getHelperStringParams(helperStr string) map[string]string {
 			params[paramStringsSubmatch[1]] = paramStringsSubmatch[2]
 		}
 	}
-
-	/*
-		if len(paramsStringsSubmatch) > 1 {
-			println(paramsStringsSubmatch[0][0])
-			println(paramsStringsSubmatch[0][1])
-			println(paramsStringsSubmatch[0][2])
-
-			println(paramsStringsSubmatch[1][0])
-			println(paramsStringsSubmatch[1][1])
-			println(paramsStringsSubmatch[1][2])
-		}*/
 
 	return params
 }

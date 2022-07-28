@@ -16,11 +16,16 @@
 
 package helper
 
-import "testing"
+import (
+	"regexp"
+	"testing"
+)
 
 func TestHasValue(t *testing.T) {
 
-	helper := Helper{"req", "{{ alfred.req.test }}", "", "test", ""}
+	regex, _ := regexp.Compile(`\w{3}`)
+
+	helper := Helper{"req", "{{ alfred.req.test }}", "", "test", "", regex}
 
 	if helper.HasValue() {
 		t.Errorf("Helper HasValue is: true, want: false.")

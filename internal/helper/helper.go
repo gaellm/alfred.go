@@ -16,10 +16,14 @@
 
 package helper
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"regexp"
+)
 
 const REQUEST = "req"
 const PARAM_NAME = "name"
+const PARAM_REGEX = "regex"
 
 type Helper struct {
 	Type   string
@@ -27,6 +31,7 @@ type Helper struct {
 	Value  string
 	Target string
 	Name   string
+	Regex  *regexp.Regexp
 }
 
 func (h Helper) HasValue() bool {
@@ -49,6 +54,7 @@ func (h Helper) Clone() Helper {
 		clone.Value = h.Value
 		clone.Target = h.Target
 		clone.Name = h.Name
+		clone.Regex = h.Regex
 	}
 
 	return clone
