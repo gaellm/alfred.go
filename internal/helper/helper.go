@@ -23,19 +23,36 @@ import (
 
 //helper types
 const REQUEST = "req"
-const DATE = "date"
+const DATE = "time"
 
 //helper params
 const PARAM_NAME = "name"
 const PARAM_REGEX = "regex"
 
 type Helper struct {
-	Type   string
-	String string
-	Value  string
-	Target string
-	Name   string
-	Regex  *regexp.Regexp
+	Type          string
+	String        string
+	Value         string
+	Target        string
+	Name          string
+	Regex         *regexp.Regexp
+	privateParams map[string]string
+}
+
+func (h Helper) AddPrivateParam(paramName string, paramValue string) Helper {
+
+	if h.privateParams == nil {
+		h.privateParams = map[string]string{}
+	}
+
+	h.privateParams[paramName] = paramValue
+
+	return h
+}
+
+func (h Helper) GetPrivateParam(paramName string) string {
+
+	return h.privateParams[paramName]
 }
 
 func (h Helper) HasValue() bool {
@@ -59,6 +76,7 @@ func (h Helper) Clone() Helper {
 		clone.Target = h.Target
 		clone.Name = h.Name
 		clone.Regex = h.Regex
+		clone.privateParams = h.privateParams
 	}
 
 	return clone

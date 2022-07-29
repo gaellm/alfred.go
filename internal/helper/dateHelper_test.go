@@ -16,25 +16,29 @@
 
 package helper
 
+/*
 import (
-	"regexp"
 	"testing"
 )
 
-func TestHasValue(t *testing.T) {
 
-	regex, _ := regexp.Compile(`\w{3}`)
+func TestCheckDateHelperRef(t *testing.T) {
 
-	helper := Helper{"req", "{{ alfred.req.test }}", "", "test", "", regex, map[string]string{}}
+	//check utc
+	helper := Helper{DATE, "{{ alfred." + DATE + ".now.utc }}", "", "now.utc", "", nil, nil}
 
-	if helper.HasValue() {
-		t.Errorf("Helper HasValue is: true, want: false.")
+	err := checkDateHelperRef(helper)
+
+	if err != nil {
+		t.Errorf("checkDateHelperRef return an error: " + err.Error())
 	}
 
-	helper.Value = "test"
+	helper.Target = "badref"
 
-	if !helper.HasValue() {
-		t.Errorf("Helper HasValue is: false, want: true.")
+	err = checkDateHelperRef(helper)
+	if err == nil {
+		t.Errorf("checkDateHelperRef not return error but it should")
 	}
 
 }
+*/

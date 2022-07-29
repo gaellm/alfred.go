@@ -53,6 +53,11 @@ func createHelper(helperString string, helperTarget string) (Helper, error) {
 
 	}
 
+	h, error := sanitizeHelper(h)
+	if error != nil {
+		return h, error
+	}
+
 	return h, err
 }
 
@@ -146,4 +151,15 @@ func HelpersBuilder(buffer []byte) ([]Helper, error) {
 	}
 
 	return helpers, nil
+}
+
+func sanitizeHelper(h Helper) (Helper, error) {
+
+	//check date targets
+	if h.Type == DATE {
+
+		return sanitizeDateHelper(h)
+	}
+
+	return h, nil
 }

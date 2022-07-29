@@ -6,7 +6,7 @@
     },
     "response": {
         "status": 200,
-        "body": "Hello world! with date {{ alfred.date.test }} two times {{ alfred.date.test @name:'date2' }}",
+        "body": "Hello world! with date {{ alfred.time.now }} two times {{ alfred.time.now @name:'date2' }} or {{ alfred.time.now.utc }}",
         "headers": {
             "Content-Type": "text/plain"
         }

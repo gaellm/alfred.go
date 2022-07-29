@@ -21,7 +21,6 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
-	"time"
 
 	xj "github.com/basgys/goxml2json"
 	"github.com/gin-gonic/gin"
@@ -198,7 +197,7 @@ func DateWatcher(h []Helper) ([]Helper, error) {
 		}
 
 		//add the date command result
-		h[i].Value = time.Now().UTC().String()
+		h[i].Value, _ = GetTargetDateStringValue(helper)
 
 	}
 
