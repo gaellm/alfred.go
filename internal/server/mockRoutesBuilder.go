@@ -56,37 +56,73 @@ func AddMocksRoutes(c *gin.Engine, mocks mock.MockCollection) {
 
 			body := m.GetResponseBody()
 
-			if m.HasRequestHelper() {
-				log.Debug(c.Request.Context(), "start to populate request helper(s)",
-					zap.String("mock-name", m.GetName()),
-					zap.String("request-path", c.Request.RequestURI),
-					zap.String("request-body", string(data)),
-					zap.String("mock-conf", string(m.GetJsonBytes())),
-				)
+			if m.HasHelper() {
 
-				// Populate mock request helpers
-				helpersPopulated, err := helper.RequestHelperWatcher(data, c, m.GetRequestHelpers())
-				if err != nil {
-					log.Warn(c.Request.Context(), "helpers request watcher in error", err,
+				helpersPopulated := []helper.Helper{}
+
+				if m.HasRequestHelper() {
+					log.Debug(c.Request.Context(), "start to populate request helper(s)",
 						zap.String("mock-name", m.GetName()),
 						zap.String("request-path", c.Request.RequestURI),
 						zap.String("request-body", string(data)),
 						zap.String("mock-conf", string(m.GetJsonBytes())),
 					)
+
+					// Populate mock request helpers
+					requestHelpersPopulated, err := helper.RequestHelperWatcher(data, c, m.GetRequestHelpers())
+					if err != nil {
+						log.Warn(c.Request.Context(), "helpers request watcher in error", err,
+							zap.String("mock-name", m.GetName()),
+							zap.String("request-path", c.Request.RequestURI),
+							zap.String("request-body", string(data)),
+							zap.String("mock-conf", string(m.GetJsonBytes())),
+						)
+					}
+
+					helpersPopulated = append(helpersPopulated, requestHelpersPopulated...)
+
+					log.Debug(c.Request.Context(), "request helper(s) populated",
+						zap.String("mock-name", m.GetName()),
+						zap.String("request-path", c.Request.RequestURI),
+						zap.String("request-body", string(data)),
+						zap.String("mock-conf", string(m.GetJsonBytes())),
+						zap.String("helpers", m.UpdateRequestHelpers(helpersPopulated).GetJsonHelpers()),
+					)
 				}
 
-				log.Debug(c.Request.Context(), "helper(s) populated",
-					zap.String("mock-name", m.GetName()),
-					zap.String("request-path", c.Request.RequestURI),
-					zap.String("request-body", string(data)),
-					zap.String("mock-conf", string(m.GetJsonBytes())),
-					zap.String("helpers", m.UpdateRequestHelpers(helpersPopulated).GetJsonHelpers()),
-				)
+				if m.HasDatetHelper() {
+
+					log.Debug(c.Request.Context(), "start to populate date helper(s)",
+						zap.String("mock-name", m.GetName()),
+						zap.String("request-path", c.Request.RequestURI),
+						zap.String("mock-conf", string(m.GetJsonBytes())),
+					)
+
+					// Populate mock date helpers
+					dateHelpersPopulated, err := helper.DateWatcher(m.GetDateHelpers())
+					if err != nil {
+						log.Warn(c.Request.Context(), "helpers date watcher in error", err,
+							zap.String("mock-name", m.GetName()),
+							zap.String("request-path", c.Request.RequestURI),
+							zap.String("request-body", string(data)),
+							zap.String("mock-conf", string(m.GetJsonBytes())),
+						)
+					}
+
+					helpersPopulated = append(helpersPopulated, dateHelpersPopulated...)
+
+					log.Debug(c.Request.Context(), "date helper(s) populated",
+						zap.String("mock-name", m.GetName()),
+						zap.String("request-path", c.Request.RequestURI),
+						zap.String("mock-conf", string(m.GetJsonBytes())),
+						zap.String("helpers", m.UpdateDateHelpers(helpersPopulated).GetJsonHelpers()),
+					)
+				}
 
 				// Replace helpers inside mock response body
 				body, err = helper.HelperReplacement(m.GetResponseBody(), helpersPopulated)
 
-				// Replace helpers inside mock response headers
+				// Replace helpers inside mock response headers and set
 				for k, v := range m.GetResponseHeaders() {
 
 					v, err = helper.HelperReplacement(v, helpersPopulated)

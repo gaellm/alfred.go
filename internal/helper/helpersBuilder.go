@@ -23,7 +23,7 @@ import (
 )
 
 var (
-	TYPES = [...]string{REQUEST}
+	TYPES = [...]string{REQUEST, DATE}
 )
 
 func createHelper(helperString string, helperTarget string) (Helper, error) {
@@ -38,11 +38,14 @@ func createHelper(helperString string, helperTarget string) (Helper, error) {
 
 	h.String = helperString
 
-	r := regexp.MustCompile(`alfred\.req\.([^ @]*).*`)
+	r := regexp.MustCompile(`alfred\.\w*\.([^ @]*).*`)
 	h.Target = r.FindStringSubmatch(helperTarget)[1]
 
 	var err error
 	h.Type, err = detectHelperType(helperTarget)
+	if err != nil {
+		return h, err
+	}
 
 	helperRegex, helperRegexExists := params[PARAM_REGEX]
 	if helperRegexExists {

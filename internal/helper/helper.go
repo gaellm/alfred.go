@@ -21,7 +21,11 @@ import (
 	"regexp"
 )
 
+//helper types
 const REQUEST = "req"
+const DATE = "date"
+
+//helper params
 const PARAM_NAME = "name"
 const PARAM_REGEX = "regex"
 

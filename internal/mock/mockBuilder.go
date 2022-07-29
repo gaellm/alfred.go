@@ -54,6 +54,8 @@ func BuildMockFromJson(jsonData []byte) (Mock, error) {
 
 			mock.AddRequestHelper(h)
 
+		} else if h.Type == helper.DATE {
+			mock.AddDatetHelper(h)
 		}
 
 		log.Debug(context.Background(), "helper "+h.Name+" found :'"+h.Target+"'"+" of type : '"+h.Type+"'", zap.String("mock-name", mock.GetName()))

@@ -37,6 +37,7 @@ type Mock struct {
 	Response       MockResponse `json:"response"`
 	jsonBytes      []byte
 	requestHelpers []helper.Helper
+	dateHelpers    []helper.Helper
 }
 
 func (m *Mock) AddRequestHelper(h helper.Helper) {
@@ -44,14 +45,35 @@ func (m *Mock) AddRequestHelper(h helper.Helper) {
 	m.requestHelpers = append(m.requestHelpers, h)
 }
 
+func (m *Mock) AddDatetHelper(h helper.Helper) {
+
+	m.dateHelpers = append(m.dateHelpers, h)
+}
+
 func (m Mock) HasRequestHelper() bool {
 
 	return len(m.requestHelpers) > 0
 }
 
+func (m Mock) HasDatetHelper() bool {
+
+	return len(m.dateHelpers) > 0
+}
+
+func (m Mock) HasHelper() bool {
+
+	return m.HasDatetHelper() || m.HasRequestHelper()
+}
+
 func (m Mock) UpdateRequestHelpers(h []helper.Helper) Mock {
 
 	m.requestHelpers = h
+	return m
+}
+
+func (m Mock) UpdateDateHelpers(h []helper.Helper) Mock {
+
+	m.dateHelpers = h
 	return m
 }
 
@@ -68,10 +90,26 @@ func (m Mock) GetRequestHelpers() []helper.Helper {
 	return clones
 }
 
+// An array of truct keep references to struct, so we have to clone
+// the array before returning it.
+func (m Mock) GetDateHelpers() []helper.Helper {
+
+	var clones []helper.Helper
+
+	for _, h := range m.dateHelpers {
+		clones = append(clones, h.Clone())
+	}
+
+	return clones
+}
+
 func (m Mock) GetJsonHelpers() string {
 
 	var jsonHelpers string
-	helpers := m.GetRequestHelpers()
+	helpers := append(
+		append([]helper.Helper{}, m.GetRequestHelpers()...),
+		m.GetDateHelpers()...,
+	)
 
 	for i := range helpers {
 

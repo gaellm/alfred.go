@@ -21,6 +21,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 
 	xj "github.com/basgys/goxml2json"
 	"github.com/gin-gonic/gin"
@@ -186,4 +187,20 @@ func headersWatcher(headers http.Header, h []Helper) []Helper {
 	}
 
 	return h
+}
+
+func DateWatcher(h []Helper) ([]Helper, error) {
+
+	for i, helper := range h {
+
+		if helper.Value != "" {
+			continue
+		}
+
+		//add the date command result
+		h[i].Value = time.Now().UTC().String()
+
+	}
+
+	return h, nil
 }
