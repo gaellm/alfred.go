@@ -6,7 +6,7 @@
     },
     "response": {
         "status": 200,
-        "body": "Hello world! with date {{ alfred.time.now }} two times {{ alfred.time.now @name:'date2' }} or {{ alfred.time.now.utc }}",
+        "body": "  {{ alfred.time.date(2009,01,03,4,2,0,3).format('Mon Jan 2 15:04:05 -0700 MST 2006').add('4m') }} et unix {{ alfred.time.date(2009,01,03,4,2,0,3).format('unix') }} - Hello world! with date {{ alfred.time.now.utc }} two times {{ alfred.time.now @name:'date2' }} or {{ alfred.time.now.utc }}",
         "headers": {
             "Content-Type": "text/plain"
         }

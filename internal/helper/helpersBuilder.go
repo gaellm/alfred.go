@@ -38,8 +38,8 @@ func createHelper(helperString string, helperTarget string) (Helper, error) {
 
 	h.String = helperString
 
-	r := regexp.MustCompile(`alfred\.\w*\.([^ @]*).*`)
-	h.Target = r.FindStringSubmatch(helperTarget)[1]
+	r := regexp.MustCompile(`alfred\.\w*\.([^@]*).*`)
+	h.Target = strings.TrimSpace(r.FindStringSubmatch(helperTarget)[1])
 
 	var err error
 	h.Type, err = detectHelperType(helperTarget)
@@ -78,7 +78,7 @@ func findHelpersStrings(jsonData []byte) [][]string {
 
 	var helpersStrings [][]string
 
-	r := regexp.MustCompile(`{{[ ]?([^{}]*?)[ ]?}}`)
+	r := regexp.MustCompile(`{{[ ]?([^{}]*?[)]?)[ ]?}}`)
 
 	allStringSubmatch := r.FindAllStringSubmatch(string(jsonData), -1)
 

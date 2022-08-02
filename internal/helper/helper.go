@@ -39,15 +39,13 @@ type Helper struct {
 	privateParams map[string]string
 }
 
-func (h Helper) AddPrivateParam(paramName string, paramValue string) Helper {
+func (h *Helper) AddPrivateParam(paramName string, paramValue string) {
 
 	if h.privateParams == nil {
 		h.privateParams = map[string]string{}
 	}
 
 	h.privateParams[paramName] = paramValue
-
-	return h
 }
 
 func (h Helper) GetPrivateParam(paramName string) string {

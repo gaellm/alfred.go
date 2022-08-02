@@ -192,7 +192,7 @@ func DateWatcher(h []Helper) ([]Helper, error) {
 
 	for i, helper := range h {
 
-		if helper.Value != "" {
+		if helper.HasValue() {
 			continue
 		}
 
