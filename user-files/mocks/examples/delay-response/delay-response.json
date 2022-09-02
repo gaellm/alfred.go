@@ -1,0 +1,16 @@
+{
+    "name": "delay-response",
+    "request": {
+        "method": "GET",
+        "url": "/some/delay"
+    },
+    "response": {
+        "status": 200,
+        "minResponseTime": 1000,
+        "maxResponseTime": 6000,
+        "body": "Hello Sir",
+        "headers": {
+            "Content-Type": "text/plain"
+        }
+    }
+}

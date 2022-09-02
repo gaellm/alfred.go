@@ -1,0 +1,12 @@
+{
+    "name": "body-file",
+    "request": {
+        "url": "/some/body"
+    },
+    "response": {
+        "body-file": "example-bodyfile.json",
+        "headers": {
+            "Content-Type": "application/json"
+        }
+    }
+  }

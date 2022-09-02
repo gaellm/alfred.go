@@ -1,0 +1,18 @@
+# This file uses the Visual Studio Code REST Client extension
+# https://github.com/Huachao/vscode-restclient
+
+
+# Start Alfred.go with the example 'send-req-action.json' mock 
+# and send the following requests to test
+# Set Alfred.go log level to debug to see the sent request response details
+
+@baseUrl = http://localhost:8080
+
+
+### Test action
+POST {{baseUrl}}/some/send-req-action
+Content-Type: application/json
+
+{
+    "callback-url": "{{baseUrl}}"
+}

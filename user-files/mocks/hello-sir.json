@@ -1,0 +1,6 @@
+{
+    "request": {
+        "url": "/hello-sir"
+    },
+    "comment": "This is the lightest mock that Alfred.go can handle. By default the method will be a GET, and the response will be empty with 200 OK status code."
+}

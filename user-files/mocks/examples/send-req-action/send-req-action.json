@@ -1,0 +1,26 @@
+{
+    "name": "send-req-action",
+    "request": {
+        "method": "POST",
+        "url": "/some/send-req-action"
+    },
+    "response": {
+        "status": 200,
+        "body": "Action triggered",
+        "headers": {
+            "Content-Type": "text/plain"
+        }
+    },
+    "actions": [{
+        "type": "send-request",
+        "minScheduledTime": 2000,
+        "maxScheduledTime": 10000,
+        "method": "GET",
+        "url": "{{ alfred.req.callback-url }}",
+        "timeout": "30s",
+        "body": "",
+        "headers": {
+            "Content-Type": "application/json;charset=UTF-8"
+        }
+    }]
+  }

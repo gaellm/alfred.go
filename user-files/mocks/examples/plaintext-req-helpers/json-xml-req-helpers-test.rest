@@ -1,0 +1,17 @@
+# This file uses the Visual Studio Code REST Client extension
+# https://github.com/Huachao/vscode-restclient
+
+
+# Start Alfred.go with the example 'plaintext-req-helpers.json' mock 
+# and send the following request to test
+
+@baseUrl = http://localhost:8080
+
+
+### Test with plain text
+POST {{baseUrl}}/some/plaintext-req-helpers/path-value
+Content-Type: text/plain
+Header-Var: header-value
+
+Hello here find a test=body-plaintext-value to catch!
+

@@ -1,0 +1,33 @@
+{
+    "alfred": {
+        "name": "alfred-mock",
+        "version" : "1.0",
+        "namespace": "default",
+        "environment": "all",
+        "log-level": "INFO",
+        "core": {
+            "mocks-dir": "user-files/mocks/",
+            "functions-dir": "user-files/functions/",
+            "body-files-dir": "user-files/body-files/",
+            "listen": {
+                "ip": "0.0.0.0",
+                "port": "8080"
+            }
+        },
+        "prometheus":{
+            "enable": false,
+            "path":"/metrics",
+            "listen": {
+                "ip": "",
+                "port":""
+            },
+            "slow-time-seconds": 5
+        },
+        "tracing":{
+            "otlp-endpoint": "",
+            "insecure": true,
+            "sampler": "parentbased_traceidratio",
+            "sampler-args": "1.0"
+        }
+    }
+}

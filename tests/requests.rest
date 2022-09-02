@@ -1,0 +1,14 @@
+@baseUrl = http://localhost:8080
+
+###
+
+POST {{baseUrl}}/logger
+Content-Type: application/json
+
+{
+    "configuredLevel": "debug"
+}
+
+###
+
+GET {{baseUrl}}/metrics

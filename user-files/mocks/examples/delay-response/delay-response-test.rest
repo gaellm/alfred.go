@@ -1,0 +1,36 @@
+# This file uses the Visual Studio Code REST Client extension
+# https://github.com/Huachao/vscode-restclient
+
+
+# Start Alfred.go with the example 'delay-response.json' mock 
+# and send the following requests to test
+
+@baseUrl = http://localhost:8080
+
+
+### Test delay between 1 and 6 seconds
+GET {{baseUrl}}/some/delay
+
+
+### Add a global 1 second response time offset during 5 seconds
+### usefull for chaos testing
+POST {{baseUrl}}/alfred/delay
+Content-Type: application/json
+
+{
+    "minResponseTime": 1000,
+    "duration": 5000
+}
+
+### Live patching a mock to change the configuration and set a new delay
+### then test the first GET request to observe the new response time.
+PATCH {{baseUrl}}/alfred
+Content-Type: application/json
+
+{
+    "name": "delay-response",
+    "response": {
+        "minResponseTime": 0,
+        "maxResponseTime": 0
+    }
+}

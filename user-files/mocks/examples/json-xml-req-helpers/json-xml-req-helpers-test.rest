@@ -1,0 +1,31 @@
+# This file uses the Visual Studio Code REST Client extension
+# https://github.com/Huachao/vscode-restclient
+
+
+# Start Alfred.go with the example 'json-xml-req-helpers.json' mock 
+# and send the following requests to test
+
+@baseUrl = http://localhost:8080
+
+
+### Test with JSON
+POST {{baseUrl}}/some/json-xml-req-helpers/path-value?path-query=query-value
+Content-Type: application/json
+Header-Var: header-value
+
+{
+    "test":{
+        "body-var": "json-value"
+    }
+}
+
+
+### Test with XML
+POST {{baseUrl}}/some/json-xml-req-helpers/path-value?path-query=query-value
+Content-Type: application/xml
+Header-Var: header-value
+
+<?xml version="1.0" encoding="UTF-8"?>
+<test>
+   <body-var>xml-value</body-var>
+</test>

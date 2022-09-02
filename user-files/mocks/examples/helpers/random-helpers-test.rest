@@ -1,0 +1,12 @@
+# This file uses the Visual Studio Code REST Client extension
+# https://github.com/Huachao/vscode-restclient
+
+
+# Start Alfred.go with the example 'random-helpers.json' mock 
+# and send the following requests to test
+
+@baseUrl = http://localhost:8080
+
+
+### Test delay between 1 and 6 seconds
+GET {{baseUrl}}/some/random-helpers

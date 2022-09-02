@@ -1,0 +1,15 @@
+{
+    "name": "json-xml-req-helpers",
+    "request": {
+        "method": "POST",
+        "url": "/some/json-xml-req-helpers/:path-var"
+    },
+    "response": {
+        "status": 200,
+        "body": "{\"from-req-body\":\"{{ alfred.req.test.body-var }}\", \"from-req-path\":\"{{ alfred.req.path-var }}\", \"from-path-query\":\"{{ alfred.req.path-query }}\"}",
+        "headers": {
+            "Content-Type": "application/json",
+            "From-Req-Header": "{{ alfred.req.header-var }}"
+        }
+    }
+}

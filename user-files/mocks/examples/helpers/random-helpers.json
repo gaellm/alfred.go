@@ -1,0 +1,14 @@
+{
+    "name": "random-helpers",
+    "request": {
+        "method": "GET",
+        "url": "/some/random-helpers"
+    },
+    "response": {
+        "status": 200,
+        "body": "{\"a-random-uuid\": \"{{ alfred.random.RandomUUID }}\",\"a-random-first-name\": \"{{ alfred.random.randomPersonFirstName }}\", \"a-random-number\": \"{{ alfred.random.randomIntBetween(1,10) }}\",\"the-same-random-number\": \"{{ alfred.random.randomIntBetween(1,10) }}\",\"a-new-random-number\": \"{{ alfred.random.randomIntBetween(1,10) @name:'last-random' }}\", \"a-random-address-city\":\"{{ alfred.random.RandomAddressCity }}\", \"a-random-lorem-sentence\":\"{{ alfred.random.RandomLoremSentences }}\"}",
+        "headers": {
+            "Content-Type": "application/json"
+        }
+    }
+}
