@@ -31,7 +31,7 @@ jobs:
           args: >
             -Dsonar.organization=gaellm
             -Dsonar.projectKey=gaellm_alfred.go
-            -Dsonar.exclusions=docs/**,tests/**, assets/**, grafana/**
+            -Dsonar.exclusions=docs/**,tests/**,assets/**,grafana/**
           projectBaseDir: .
 
   test:
