@@ -87,7 +87,7 @@ func BuildMockFromJson(jsonData []byte) (Mock, error) {
 	return mock, nil
 }
 
-func getBodyFileContent(bodyFileName string) (string, error) {
+func getBodyFileContent(bodyFileName string) ([]byte, error) {
 
 	config, _ := conf.GetConfiguration()
 
@@ -95,9 +95,9 @@ func getBodyFileContent(bodyFileName string) (string, error) {
 
 	fileBytes, err := os.ReadFile(filePath)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	return string(fileBytes), nil
+	return fileBytes, nil
 
 }

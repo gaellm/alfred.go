@@ -18,6 +18,7 @@ package mock
 
 import (
 	"alfred/internal/helper"
+	"encoding/json"
 	"math/rand"
 	"time"
 )
@@ -29,7 +30,7 @@ type MockRequest struct {
 
 type MockResponse struct {
 	Status          int               `json:"status"`
-	Body            string            `json:"body"`
+	Body            json.RawMessage   `json:"body"`
 	BodyFile        string            `json:"body-file"`
 	Headers         map[string]string `json:"headers"`
 	MinResponseTime int               `json:"minResponseTime"`
@@ -214,7 +215,7 @@ func (m Mock) GetResponseStatus() int {
 }
 
 func (m Mock) GetResponseBody() string {
-	return m.Response.Body
+	return string(m.Response.Body)
 }
 
 func (m Mock) GetResponseHeaders() map[string]string {
