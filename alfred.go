@@ -60,7 +60,7 @@ func main() {
 	log.Debug(ctx, "alfred configuration initialized with: "+string(configurationJson))
 
 	mockCollection := mock.CreateMockCollectionFromFolder(configuration.Alfred.Core.MocksDir)
-	mocksNbStr := strconv.Itoa(len(mockCollection))
+	mocksNbStr := strconv.Itoa(len(mockCollection.Mocks))
 
 	//Add mocks nb to context
 

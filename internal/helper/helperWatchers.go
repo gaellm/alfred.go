@@ -19,32 +19,35 @@ package helper
 import (
 	"errors"
 	"net/http"
-	"net/url"
 	"strings"
 
 	xj "github.com/basgys/goxml2json"
-	"github.com/gin-gonic/gin"
 	"github.com/tidwall/gjson"
 )
 
-func RequestHelperWatcher(data []byte, c *gin.Context, h []Helper) ([]Helper, error) {
+func PathHelperWatcher(r *http.Request, h []Helper) ([]Helper, error) {
+
+	//Watch HTTP query url
+	h = pathWatcher(r, h)
+
+	return h, nil
+}
+
+func RequestHelperWatcher(data []byte, r *http.Request, h []Helper) ([]Helper, error) {
 
 	var err error
 
-	//Watch HTTP query
-	h = queryWatcher(c.Request.URL.Query(), h)
-
-	//Watch URL params
-	h = paramWatcher(c.Params, h)
+	//Watch HTTP query and params
+	h = paramWatcher(r, h)
 
 	//Watch HTTP body
-	h, err = bodyWatcher(data, c, h)
+	h, err = bodyWatcher(data, r, h)
 	if err != nil {
 		return h, err
 	}
 
 	//Watch HTTP headers
-	h = headersWatcher(c.Request.Header, h)
+	h = headersWatcher(r.Header, h)
 
 	return h, err
 }
@@ -81,26 +84,10 @@ func textWatcher(d []byte, h []Helper) ([]Helper, error) {
 	return h, nil
 }
 
-func queryWatcher(query url.Values, h []Helper) []Helper {
+func paramWatcher(r *http.Request, h []Helper) []Helper {
 
-	if len(query) > 0 {
-
-		for i, helper := range h {
-
-			if helper.Value != "" {
-				continue
-			}
-
-			h[i].Value = query.Get(helper.Target)
-		}
-	}
-
-	return h
-}
-
-func paramWatcher(params gin.Params, h []Helper) []Helper {
-
-	if len(params) > 0 {
+	r.ParseForm()
+	if len(r.Form) > 0 {
 
 		for i, helper := range h {
 
@@ -108,17 +95,35 @@ func paramWatcher(params gin.Params, h []Helper) []Helper {
 				continue
 			}
 
-			h[i].Value = params.ByName(helper.Target)
+			h[i].Value = r.FormValue(helper.Target)
 		}
 	}
 
 	return h
 }
 
-func bodyWatcher(data []byte, c *gin.Context, h []Helper) ([]Helper, error) {
+func pathWatcher(r *http.Request, h []Helper) []Helper {
+
+	values := r.Context().Value("pathHelperValues").(map[string]string)
+
+	if len(values) > 0 {
+
+		for i, helper := range h {
+
+			if values[helper.String] != "" {
+				h[i].Value = values[helper.String]
+			}
+
+		}
+	}
+
+	return h
+}
+
+func bodyWatcher(data []byte, r *http.Request, h []Helper) ([]Helper, error) {
 
 	//JSON
-	if strings.Contains(c.ContentType(), "json") {
+	if strings.Contains(r.Header.Get("Content-type"), "json") {
 
 		helpers, err := jsonWatcher(data, h)
 		if err != nil {
@@ -128,7 +133,7 @@ func bodyWatcher(data []byte, c *gin.Context, h []Helper) ([]Helper, error) {
 		return helpers, nil
 
 		//XML
-	} else if strings.Contains(c.ContentType(), "xml") {
+	} else if strings.Contains(r.Header.Get("Content-type"), "xml") {
 
 		xml := strings.NewReader(string(data))
 
@@ -144,7 +149,7 @@ func bodyWatcher(data []byte, c *gin.Context, h []Helper) ([]Helper, error) {
 		}
 
 		return helpers, nil
-	} else if strings.Contains(c.ContentType(), "text") {
+	} else if strings.Contains(r.Header.Get("Content-type"), "text") {
 
 		helpers, err := textWatcher(data, h)
 		if err != nil {

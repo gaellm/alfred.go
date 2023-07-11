@@ -20,7 +20,9 @@ import (
 	"encoding/json"
 )
 
-type MockCollection []*Mock
+type MockCollection struct {
+	Mocks []*Mock
+}
 
 type MockInfo struct {
 	Name   string
@@ -28,11 +30,23 @@ type MockInfo struct {
 	Url    string
 }
 
+func (c *MockCollection) HasRegexUrlMock() bool {
+
+	for _, m := range c.Mocks {
+
+		if m.HasRegexUrl() {
+			return true
+		}
+	}
+
+	return false
+}
+
 func (c MockCollection) GetMockInfoList() []MockInfo {
 
 	var mockInfoList []MockInfo
 
-	for _, m := range c {
+	for _, m := range c.Mocks {
 
 		mockInfo := MockInfo{m.GetName(), m.GetRequestMethod(), m.GetRequestUrl()}
 		mockInfoList = append(mockInfoList, mockInfo)

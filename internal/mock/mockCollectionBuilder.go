@@ -60,7 +60,7 @@ func CreateMockCollectionFromFolder(path string) MockCollection {
 		panic("error during mocks content load......" + err.Error())
 	}
 
-	var mocks MockCollection
+	var mockCollection MockCollection
 
 	for _, fileContent := range filesContent {
 
@@ -70,8 +70,8 @@ func CreateMockCollectionFromFolder(path string) MockCollection {
 			panic(fmt.Errorf("fatal error, mock build from json: %w", err))
 		}
 
-		mocks = append(mocks, &currentMock)
+		mockCollection.Mocks = append(mockCollection.Mocks, &currentMock)
 	}
 
-	return mocks
+	return mockCollection
 }

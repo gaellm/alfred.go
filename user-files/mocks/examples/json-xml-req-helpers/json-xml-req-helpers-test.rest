@@ -19,7 +19,6 @@ Header-Var: header-value
     }
 }
 
-
 ### Test with XML
 POST {{baseUrl}}/some/json-xml-req-helpers/path-value?path-query=query-value
 Content-Type: application/xml

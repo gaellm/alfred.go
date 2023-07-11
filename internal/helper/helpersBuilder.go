@@ -23,7 +23,7 @@ import (
 )
 
 var (
-	TYPES = [...]string{REQUEST, DATE, RANDOM}
+	TYPES = [...]string{REQUEST, DATE, RANDOM, PATH_REGEX}
 )
 
 func createHelper(helperString string, helperTarget string) (Helper, error) {

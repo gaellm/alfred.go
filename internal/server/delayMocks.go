@@ -20,10 +20,9 @@ import (
 	"alfred/internal/log"
 	"encoding/json"
 	"io"
+	"net/http"
 	"strconv"
 	"time"
-
-	"github.com/gin-gonic/gin"
 )
 
 type GlobalDelayPlayload struct {
@@ -31,19 +30,19 @@ type GlobalDelayPlayload struct {
 	Duration     int `json:"duration"`
 }
 
-func DelayMocks(alfredGlobalDelay *time.Duration, c *gin.Context) {
+func DelayMocks(alfredGlobalDelay *time.Duration, w http.ResponseWriter, r *http.Request) {
 
-	requestRecover(c)
+	requestRecover(w, r)
 
-	data, err := io.ReadAll(c.Request.Body)
+	data, err := io.ReadAll(r.Body)
 	if err != nil {
-		log.Error(c.Request.Context(), "failed to read request body", err)
+		log.Error(r.Context(), "failed to read request body", err)
 	}
 
 	var playload GlobalDelayPlayload
 	err = json.Unmarshal(data, &playload)
 	if err != nil {
-		log.Error(c.Request.Context(), "received json unmarschal fail", err)
+		log.Error(r.Context(), "received json unmarschal fail", err)
 	}
 
 	responseTimeDuration := time.Duration(playload.ResponseTime) * time.Millisecond
@@ -51,14 +50,14 @@ func DelayMocks(alfredGlobalDelay *time.Duration, c *gin.Context) {
 
 	//set response time offset
 	*alfredGlobalDelay = responseTimeDuration
-	log.Info(c.Request.Context(), "a global response time offset of : "+strconv.Itoa(playload.ResponseTime)+"ms has been set for "+strconv.Itoa(playload.Duration)+"ms")
+	log.Info(r.Context(), "a global response time offset of : "+strconv.Itoa(playload.ResponseTime)+"ms has been set for "+strconv.Itoa(playload.Duration)+"ms")
 
 	//goroutine for duration and responseTime reset
 	go func(during time.Duration, alfredGlobalDelay *time.Duration) {
 
 		time.Sleep(during)
 		*alfredGlobalDelay = 0
-		log.Info(c.Request.Context(), "global response time offset reset")
+		log.Info(r.Context(), "global response time offset reset")
 
 	}(delayDuration, alfredGlobalDelay)
 

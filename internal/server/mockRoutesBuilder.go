@@ -29,27 +29,27 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"net/http"
 	"time"
 
-	"github.com/gin-gonic/gin"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 )
 
-func AddMocksRoutes(c *gin.Engine, mocks mock.MockCollection, functions function.FunctionCollection, alfredGlobalDelay *time.Duration) {
+func AddMocksRoutes(mux *http.ServeMux, mockCollection mock.MockCollection, functions function.FunctionCollection, alfredGlobalDelay *time.Duration) {
 
 	ctx := context.Background()
-	for _, m := range mocks {
+	for _, m := range mockCollection.Mocks {
 
 		m := m
 
-		log.Debug(ctx, "Creating route for mock '"+m.GetName()+"'", zap.String("mock-conf", string(m.GetJsonBytes())))
+		log.Debug(ctx, "Creating route for mock '"+m.GetName()+"'", zap.String("mock-url", m.GetRequestUrl()), zap.String("mock-conf", string(m.GetJsonBytes())))
 
-		c.Handle(m.GetRequestMethod(), m.GetRequestUrl(), func(c *gin.Context) {
+		mux.HandleFunc(m.GetRequestUrl(), func(w http.ResponseWriter, r *http.Request) {
 
-			requestRecover(c)
-			ctx := c.Request.Context()
+			requestRecover(w, r)
+			ctx := r.Context()
 
 			span := tracing.GetSpanFromContext(ctx)
 			span.SetAttributes(attribute.String("mockUsed", m.GetName()))
@@ -60,21 +60,21 @@ func AddMocksRoutes(c *gin.Engine, mocks mock.MockCollection, functions function
 			var res request.Res
 
 			ctxReqDetailsSpan, reqDetailsSpan := tracer.Start(ctx, "get request details")
-			data, err := io.ReadAll(c.Request.Body)
+			data, err := io.ReadAll(r.Body)
 			if err != nil {
 				log.Error(ctxReqDetailsSpan, "failed to read request body", err,
 					zap.String("mock-name", m.GetName()),
-					zap.String("request-path", c.Request.RequestURI),
+					zap.String("request-path", r.RequestURI),
 				)
 			}
 
 			//req
 			{
 				req.Body = string(data)
-				req.Method = c.Request.Method
-				req.SetHeaders(c.Request.Header)
-				req.Url = c.Request.RequestURI
-				req.SetQuery(c.Request.URL.Query())
+				req.Method = r.Method
+				req.SetHeaders(r.Header)
+				req.Url = r.RequestURI
+				req.SetQuery(r.URL.Query())
 			}
 
 			reqDetailsStr, _ := json.Marshal(req)
@@ -104,7 +104,19 @@ func AddMocksRoutes(c *gin.Engine, mocks mock.MockCollection, functions function
 					)
 
 					// Populate mock request helpers
-					requestHelpersPopulated, err := helper.RequestHelperWatcher([]byte(req.Body), c, m.GetRequestHelpers())
+					pathHelpersPopulated, err := helper.PathHelperWatcher(r, m.GetPathRegexHelpers())
+					if err != nil {
+						log.Warn(ctxReqHelperSpan, "helpers path watcher in error", err,
+							zap.String("mock-name", m.GetName()),
+							zap.String("request-details", string(reqDetailsStr)),
+							zap.String("mock-conf", string(m.GetJsonBytes())),
+						)
+					}
+
+					helpersPopulated = append(helpersPopulated, pathHelpersPopulated...)
+
+					// Populate mock request helpers
+					requestHelpersPopulated, err := helper.RequestHelperWatcher([]byte(req.Body), r, m.GetRequestHelpers())
 					if err != nil {
 						log.Warn(ctxReqHelperSpan, "helpers request watcher in error", err,
 							zap.String("mock-name", m.GetName()),
@@ -289,7 +301,7 @@ func AddMocksRoutes(c *gin.Engine, mocks mock.MockCollection, functions function
 			//set response headers
 			{
 				for k, v := range res.Headers {
-					c.Header(k, v)
+					w.Header().Set(k, v)
 				}
 			}
 
@@ -297,7 +309,8 @@ func AddMocksRoutes(c *gin.Engine, mocks mock.MockCollection, functions function
 			detachedCtx := detachcontext.Detach(ctx)
 
 			//set status and body to end response
-			c.String(res.Status, res.Body)
+			w.WriteHeader(res.Status)
+			w.Write([]byte(res.Body))
 
 			//handle actions
 			{

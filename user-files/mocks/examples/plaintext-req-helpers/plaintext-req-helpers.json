@@ -2,11 +2,11 @@
     "name": "plaintext-req-helpers",
     "request": {
         "method": "POST",
-        "url": "/some/plaintext-req-helpers/:path-var"
+        "urlRegex": "/some/plaintext-req-helpers/(.*)"
     },
     "response": {
         "status": 200,
-        "body": "{\"from-req-body\":\"{{ alfred.req.test.body-var @regex:'.*test=([^ ]*).*' }}\", \"from-req-path\":\"{{ alfred.req.path-var }}\"}",
+        "body": {"from-req-body":"{{ alfred.req.test.body-var @regex:'.*test=([^ ]*).*' }}", "from-req-path":"{{ alfred.pathRegex.1 }}"},
         "headers": {
             "Content-Type": "application/json",
             "From-Req-Header": "{{ alfred.req.header-var }}"

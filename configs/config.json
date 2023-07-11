@@ -19,7 +19,7 @@
             "path":"/metrics",
             "listen": {
                 "ip": "",
-                "port":""
+                "port":"8081"
             },
             "slow-time-seconds": 5
         },

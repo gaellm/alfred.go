@@ -23,29 +23,28 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 )
 
-func PatchMock(c *gin.Context, mocks mock.MockCollection) {
+func PatchMock(w http.ResponseWriter, r *http.Request, mockCollection mock.MockCollection) {
 
-	requestRecover(c)
+	requestRecover(w, r)
 
-	data, err := io.ReadAll(c.Request.Body)
+	data, err := io.ReadAll(r.Body)
 	if err != nil {
-		log.Error(c.Request.Context(), "failed to read request body", err)
+		log.Error(r.Context(), "failed to read request body", err)
 	}
 
 	//json Unmarshal to get name
 	var rm map[string]interface{}
 	err = json.Unmarshal(data, &rm)
 	if err != nil {
-		log.Error(c.Request.Context(), "received json unmarschal fail", err)
+		log.Error(r.Context(), "received json unmarschal fail", err)
 	}
 
 	var body []byte
 
-	for _, m := range mocks {
+	for _, m := range mockCollection.Mocks {
 
 		if m.Name == rm["name"] {
 
@@ -53,23 +52,26 @@ func PatchMock(c *gin.Context, mocks mock.MockCollection) {
 
 			err = mock.MockPatch(m, data)
 			if err != nil {
-				log.Error(c.Request.Context(), "mock patch error", err)
-				c.String(http.StatusInternalServerError, "mock patch error: "+err.Error())
+				log.Error(r.Context(), "mock patch error", err)
+				w.WriteHeader(http.StatusInternalServerError)
+				w.Write([]byte("mock patch error: " + err.Error()))
 				return
 			}
 
-			log.Info(c.Request.Context(), "mock has been patched",
+			log.Info(r.Context(), "mock has been patched",
 				zap.String("mock-name", m.GetName()),
 				zap.String("mock-conf-before", string(oldMock)),
 				zap.String("mock-conf-after", string(m.GetJsonBytes())))
 			body, _ = json.Marshal(m)
-			c.String(http.StatusOK, string(body))
+
+			w.WriteHeader(http.StatusOK)
+			w.Write(body)
 			return
 		}
 	}
 
-	mockList, _ := json.MarshalIndent(mocks.GetMockInfoList(), "", "   ")
+	mockList, _ := json.MarshalIndent(mockCollection.GetMockInfoList(), "", "   ")
 
-	c.String(http.StatusNotFound, string("Hello Sir ! This mock does not exists, however, I've found this mock list, if it can help: \n"+string(mockList)+"\n (Alfred)"))
-
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("Hello Sir ! This mock does not exists, however, I've found this mock list, if it can help: \n" + string(mockList) + "\n (Alfred)"))
 }

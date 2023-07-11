@@ -1,3 +1,8 @@
+//using npm modules
+//npm install hello-world-npm  --prefix /tmp/test
+//const helloWorld = require('/tmp/test/node_modules/hello-world-npm');
+//console.log(helloWorld());
+
 function updateHelpers(helpers) {
 
     helpers.forEach( (helper) => {

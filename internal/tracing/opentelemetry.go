@@ -19,18 +19,17 @@ package tracing
 import (
 	"context"
 	"errors"
+	"net/http"
 	"strconv"
 	"strings"
 
-	"github.com/gin-gonic/gin"
 	"github.com/imdario/mergo"
-	"google.golang.org/grpc/credentials"
 
-	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
-	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
 	"go.opentelemetry.io/otel/propagation"
 	semconv "go.opentelemetry.io/otel/semconv/v1.12.0"
 	"go.opentelemetry.io/otel/trace"
@@ -73,17 +72,22 @@ func initTracer(ctx context.Context, config OtelConfig) (func(context.Context) e
 	//exporter
 	if config.ExporterOtlpEndpoint != "" {
 
-		secureOption := otlptracegrpc.WithTLSCredentials(credentials.NewClientTLSFromCert(nil, ""))
+		client := otlptracehttp.NewClient(
+
+			otlptracehttp.WithEndpoint(config.ExporterOtlpEndpoint),
+		)
+
 		if config.ExporterInsecure {
-			secureOption = otlptracegrpc.WithInsecure()
+
+			client = otlptracehttp.NewClient(
+				otlptracehttp.WithInsecure(),
+				otlptracehttp.WithEndpoint(config.ExporterOtlpEndpoint),
+			)
 		}
 
 		exporter, err := otlptrace.New(
 			ctx,
-			otlptracegrpc.NewClient(
-				secureOption,
-				otlptracegrpc.WithEndpoint(config.ExporterOtlpEndpoint),
-			),
+			client,
 		)
 		if err != nil {
 			return nil, err
@@ -144,9 +148,10 @@ func Init(ctx context.Context, otelConfig OtelConfig) (func(context.Context) err
 	return cleanup, nil
 }
 
-func AddTracingMiddlware(e *gin.Engine) {
+func AddTracingMiddlware(handler http.Handler) http.Handler {
 
-	e.Use(otelgin.Middleware("alfred-server-name"))
+	//mux.Use(otelmux.Middleware("alfred-server-name"))
+	return otelhttp.NewHandler(handler, "alfred-server-name")
 
 }
 

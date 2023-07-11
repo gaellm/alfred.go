@@ -22,7 +22,6 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
@@ -48,20 +47,20 @@ type ChangeLogLevelResPlayload struct {
 	EffectiveLevel  string `json:"effectiveLevel"`
 }
 
-func ChangingLoggingLevelRuntime(c *gin.Context) {
+func ChangingLoggingLevelRuntime(w http.ResponseWriter, r *http.Request) {
 
-	requestRecover(c)
+	//requestRecover(c)
 
-	data, err := io.ReadAll(c.Request.Body)
+	data, err := io.ReadAll(r.Body)
 	if err != nil {
-		log.Error(c.Request.Context(), "failed to read request body", err)
+		log.Error(r.Context(), "failed to read request body", err)
 	}
 
 	var playload ChangeLogLevelReqPlayload
 
 	err = json.Unmarshal(data, &playload)
 	if err != nil {
-		log.Error(c.Request.Context(), "received json unmarschal fail", err)
+		log.Error(r.Context(), "received json unmarschal fail", err)
 	}
 
 	var res ChangeLogLevelResPlayload
@@ -72,10 +71,11 @@ func ChangingLoggingLevelRuntime(c *gin.Context) {
 	err = log.SetLevel(playload.ConfiguredLevel)
 	res.EffectiveLevel = log.GetLevel()
 	if err != nil {
-		c.String(http.StatusForbidden, err.Error())
+		http.Error(w, err.Error(), http.StatusForbidden)
 		return
 	}
 
 	resJsonStr, _ := json.MarshalIndent(res, "", "   ")
-	c.String(http.StatusOK, string(resJsonStr))
+	w.WriteHeader(http.StatusOK)
+	w.Write(resJsonStr)
 }

@@ -17,10 +17,13 @@
 package metrics
 
 import (
-	"fmt"
+	"alfred/internal/log"
+	"context"
+	"net/http"
 
-	"github.com/gin-gonic/gin"
-	"github.com/penglongli/gin-metrics/ginmetrics"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/collectors"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 type MetricsConfig struct {
@@ -30,41 +33,49 @@ type MetricsConfig struct {
 	HttpServerIp   string
 	HttpServerPort string
 	SlowTime       int32
-	Logger         gin.HandlerFunc
 }
 
-func CreateMetricEngine(e *gin.Engine, conf MetricsConfig) {
+func AddMetrics(mux *http.ServeMux, conf MetricsConfig) {
+
+	var metricsMux *http.ServeMux
 
 	conf.SanitizeConfiguration()
 
-	appRouter := e
-	metricRouter := appRouter
-	m := ginmetrics.GetMonitor()
+	// Create non-global registry.
+	reg := prometheus.NewRegistry()
 
+	// Add go runtime metrics and process collectors.
+	reg.MustRegister(
+		collectors.NewGoCollector(),
+		collectors.NewProcessCollector(collectors.ProcessCollectorOpts{}),
+	)
+
+	promHandler := promhttp.HandlerFor(reg, promhttp.HandlerOpts{Registry: reg})
+
+	//create server
 	dedicatedServer := conf.HttpServerIp != conf.MetricIp || conf.HttpServerPort != conf.MetricPort
 
 	if dedicatedServer {
-		metricRouter = gin.New()
-		metricRouter.Use(conf.Logger)
-		// use metric middleware without expose metric path
-		m.UseWithoutExposingEndpoint(appRouter)
-	} else {
-		m.Use(metricRouter)
-	}
+		metricsMux = http.NewServeMux()
 
-	// set metric path expose to metric router
-	m.SetMetricPath(conf.MetricPath)
-	// +optional set slow time, default 5s
-	m.SetSlowTime(conf.SlowTime)
-	// +optional set request duration, default {0.1, 0.3, 1.2, 5, 10}
-	// used to p95, p99
-	//m.SetDuration([]float64{0.1, 0.3, 1.2, 5, 10})
-	m.Expose(metricRouter)
+		metricsMux.Handle(conf.MetricPath, promHandler)
 
-	if dedicatedServer {
+		// Create a new HTTP server
+		server := &http.Server{
+			Addr:    conf.MetricIp + ":" + conf.MetricPort, // Specify the port to listen on
+			Handler: metricsMux,                            // Use the ServeMux as the handler
+		}
+
 		go func() {
-			_ = metricRouter.Run(fmt.Sprintf("%s:%s", conf.MetricIp, conf.MetricPort))
+			err := server.ListenAndServe()
+			if err != nil {
+				log.Error(context.Background(), "serve metrics error", err)
+			}
 		}()
+
+	} else {
+		metricsMux = mux
+		metricsMux.Handle(conf.MetricPath, promHandler)
 	}
 }
 

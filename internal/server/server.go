@@ -27,23 +27,123 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net"
 	"net/http"
+	"strconv"
 	"sync"
 	"time"
 
-	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 )
 
 type Key string
 
+func pathHelperMiddleware(mockCollection mock.MockCollection) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		fn := func(w http.ResponseWriter, r *http.Request) {
+			for _, m := range mockCollection.Mocks {
+				if m.HasRegexUrl() {
+					if m.Request.RegexUrl.Match([]byte(r.URL.Path)) {
+
+						//var values Values
+						values := make(map[string]string)
+
+						//add the helper name:value in the context
+						hs := m.GetPathRegexHelpers()
+
+						//populate
+						for _, h := range hs {
+
+							index, err := strconv.Atoi(h.Target)
+							if err != nil {
+								log.Error(r.Context(), "Failed to transform helper target into integer type", err)
+							}
+
+							if err != nil {
+								fmt.Println("Error during conversion")
+								return
+							}
+
+							v := m.Request.RegexUrl.FindSubmatch([]byte(r.URL.Path))
+
+							//add to values
+							values[h.String] = string(v[index])
+						}
+
+						//add to original path
+						values["originalPath"] = r.URL.Path
+
+						//update url to match the mock handler
+						r.URL.Path = m.Request.UrlTransformed
+
+						ctx := context.WithValue(r.Context(), "pathHelperValues", values)
+						next.ServeHTTP(w, r.WithContext(ctx))
+						return
+					}
+				}
+			}
+
+			// call next handler
+			next.ServeHTTP(w, r)
+
+		}
+		return http.HandlerFunc(fn)
+	}
+}
+
+// Middleware for logging each request
+func logRequestMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		start := time.Now()
+
+		// Serve the request
+		next.ServeHTTP(w, r)
+
+		var path string
+		values := r.Context().Value("pathHelperValues")
+		if values != nil {
+
+			path = values.(map[string]string)["originalPath"]
+
+		} else {
+			path = r.URL.Path
+		}
+
+		// Log the request
+		msg := " " + r.Method + " " + path + " " + r.RemoteAddr + " " + fmt.Sprint(time.Since(start))
+
+		log.Info(r.Context(), msg)
+
+		if log.GetLevel() == "debug" {
+
+			reqBodyBytes, _ := io.ReadAll(r.Body)
+
+			log.Debug(r.Context(), msg,
+				zap.String("request-body", string(reqBodyBytes)))
+		}
+	})
+}
+
 // Build the service
-func BuildServer(conf *conf.Config, asyncRunningJobsCount *sync.WaitGroup, mocks mock.MockCollection) (*http.Server, error) {
+func BuildServer(conf *conf.Config, asyncRunningJobsCount *sync.WaitGroup, mockCollection mock.MockCollection) (*http.Server, error) {
 	//Build all endpoints handler
-	handler, err := BuildHandler(conf, asyncRunningJobsCount, mocks)
+	handler, err := BuildHandler(conf, asyncRunningJobsCount, mockCollection)
 	if err != nil {
 		return nil, err
+	}
+
+	//logger
+	handler = logRequestMiddleware(handler)
+
+	//tracing
+	handler = tracing.AddTracingMiddlware(handler)
+
+	//
+	if mockCollection.HasRegexUrlMock() {
+		log.Debug(context.Background(), "Regex URL detected")
+		middlewarePathHelper := pathHelperMiddleware(mockCollection)
+		handler = middlewarePathHelper(handler)
 	}
 
 	//Associate the handler to a server (-> contains listening interface(s))
@@ -54,38 +154,6 @@ func BuildServer(conf *conf.Config, asyncRunningJobsCount *sync.WaitGroup, mocks
 	}, nil
 }
 
-// Provide an handler to log access
-func GinLogger() gin.HandlerFunc {
-
-	return func(c *gin.Context) {
-
-		start := time.Now()
-		path := c.Request.URL.Path
-		query := c.Request.URL.RawQuery
-		method := c.Request.Method
-		ip := c.ClientIP()
-		proto := c.Request.Proto
-		status := c.Writer.Status()
-		c.Next()
-		cost := time.Since(start)
-
-		message := fmt.Sprintf("%s %s %s?%s %d",
-			method,
-			proto,
-			path,
-			query,
-			status,
-		)
-
-		log.Info(c.Request.Context(), message,
-			zap.String("ip", ip),
-			zap.String("status", fmt.Sprintf("%d", status)),
-			zap.String("duration", cost.String()),
-		)
-
-	}
-}
-
 // Create Handler with endpoints to serve: used from service or from tests
 func BuildHandler(conf *conf.Config, asyncRunningJobsCount *sync.WaitGroup, mocks mock.MockCollection) (http.Handler, error) {
 	//log
@@ -93,17 +161,8 @@ func BuildHandler(conf *conf.Config, asyncRunningJobsCount *sync.WaitGroup, mock
 	defer log.LogPanic()
 
 	// Create controller
-	gin.SetMode(gin.ReleaseMode)
-	controller := gin.New()
+	mux := http.NewServeMux()
 
-	//tracing
-	tracing.AddTracingMiddlware(controller)
-
-	//logger
-	loggerHandler := GinLogger()
-	controller.Use(loggerHandler)
-
-	//metrics
 	if conf.Alfred.Prometheus.Enable {
 
 		prometheusConfig := metrics.MetricsConfig{
@@ -113,11 +172,11 @@ func BuildHandler(conf *conf.Config, asyncRunningJobsCount *sync.WaitGroup, mock
 			HttpServerIp:   conf.Alfred.Core.Listen.Ip,
 			HttpServerPort: conf.Alfred.Core.Listen.Port,
 			SlowTime:       conf.Alfred.Prometheus.SlowTimeSeconds,
-			Logger:         loggerHandler, //need if we create a new gin Engine
 		}
 		prometheusConfig.SanitizeConfiguration()
-		metrics.CreateMetricEngine(controller, prometheusConfig)
-
+		//metrics.CreateMetricEngine(controller, prometheusConfig)
+		//metrics
+		metrics.AddMetrics(mux, prometheusConfig)
 		log.Info(context.Background(), "Prometheus exporter started to serve on host "+prometheusConfig.MetricIp+" and is listening at port "+fmt.Sprint(prometheusConfig.MetricPort)+" with '"+prometheusConfig.MetricPath+"' path")
 	}
 
@@ -125,29 +184,23 @@ func BuildHandler(conf *conf.Config, asyncRunningJobsCount *sync.WaitGroup, mock
 	var alfredGlobalDelay time.Duration
 
 	{
-		//Disable slash forwarding
-		controller.RedirectTrailingSlash = false
 
 		//Add Routes
 		{
-			controller.Handle("POST", "/logger", func(c *gin.Context) {
+			mux.HandleFunc("/logger", ChangingLoggingLevelRuntime)
 
-				ChangingLoggingLevelRuntime(c)
-
-			})
-
-			controller.Handle("GET", "/", func(c *gin.Context) {
+			mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 
 				mockList, _ := json.MarshalIndent(mocks.GetMockInfoList(), "", "   ")
-				c.String(http.StatusOK, "Hello Sir ! I take care ot the following mocks:\n"+string(mockList)+"\n\n(Alfred)")
+				w.Write([]byte("Hello Sir ! I take care ot the following mocks:\n" + string(mockList) + "\n\n(Alfred)"))
 			})
 
-			controller.Handle("PATCH", "/alfred", func(c *gin.Context) {
-				PatchMock(c, mocks)
+			mux.HandleFunc("/alfred", func(w http.ResponseWriter, r *http.Request) {
+				PatchMock(w, r, mocks)
 			})
 
-			controller.Handle("POST", "/alfred/delay", func(c *gin.Context) {
-				DelayMocks(&alfredGlobalDelay, c)
+			mux.HandleFunc("/alfred/delay", func(w http.ResponseWriter, r *http.Request) {
+				DelayMocks(&alfredGlobalDelay, w, r)
 			})
 
 			//Load JS functions
@@ -157,11 +210,11 @@ func BuildHandler(conf *conf.Config, asyncRunningJobsCount *sync.WaitGroup, mock
 			}
 
 			// Create mocks routes
-			AddMocksRoutes(controller, mocks, functionCollection, &alfredGlobalDelay)
+			AddMocksRoutes(mux, mocks, functionCollection, &alfredGlobalDelay)
 		}
 	}
 
-	return controller, nil
+	return mux, nil
 }
 
 // Serve will bind the port(s) and launch serve in a separated goroutine
@@ -247,14 +300,11 @@ func waitAsyncJobsTimeout(ctx context.Context, wg *sync.WaitGroup) bool {
 }
 
 // requestRecover retreives a panic if it happened during request treatment
-func requestRecover(ctx *gin.Context) {
+func requestRecover(w http.ResponseWriter, req *http.Request) {
 	defer func() {
 		if r := recover(); r != nil {
-			ctx.AbortWithStatus(http.StatusInternalServerError)
-			log.Error(ctx, "Catched Panic", errors.New(fmt.Sprint(r)))
+			w.WriteHeader(http.StatusInternalServerError)
+			log.Error(req.Context(), "Catched Panic", errors.New(fmt.Sprint(r)))
 		}
 	}()
-
-	// Process request
-	ctx.Next()
 }

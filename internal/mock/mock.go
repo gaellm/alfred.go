@@ -20,12 +20,19 @@ import (
 	"alfred/internal/helper"
 	"encoding/json"
 	"math/rand"
+	"net/url"
+	"regexp"
 	"time"
 )
 
 type MockRequest struct {
-	Method string `json:"method"`
-	Url    string `json:"url"`
+	Method         string `json:"method"`
+	Url            string `json:"url"`
+	UrlRegexStr    string `json:"urlRegex"`
+	UrlTransformed string
+
+	//use to manage url helpers
+	RegexUrl *regexp.Regexp
 }
 
 type MockResponse struct {
@@ -49,20 +56,32 @@ type MockAction struct {
 }
 
 type Mock struct {
-	Name           string       `json:"name"`
-	Request        MockRequest  `json:"request"`
-	Response       MockResponse `json:"response"`
-	jsonBytes      []byte
-	requestHelpers []helper.Helper
-	dateHelpers    []helper.Helper
-	randomHelpers  []helper.Helper
-	FunctionFile   string       `json:"function-file"`
-	Actions        []MockAction `json:"actions"`
+	Name             string       `json:"name"`
+	Request          MockRequest  `json:"request"`
+	Response         MockResponse `json:"response"`
+	jsonBytes        []byte
+	requestHelpers   []helper.Helper
+	dateHelpers      []helper.Helper
+	randomHelpers    []helper.Helper
+	pathRegexHelpers []helper.Helper
+	FunctionFile     string       `json:"function-file"`
+	Actions          []MockAction `json:"actions"`
 }
 
 func (m *Mock) AddRequestHelper(h helper.Helper) {
 
 	m.requestHelpers = append(m.requestHelpers, h)
+}
+
+func (m *Mock) SetRegexUrl() {
+	r := regexp.MustCompile(m.Request.UrlRegexStr)
+	m.Request.RegexUrl = r
+	m.Request.UrlTransformed = "/" + url.QueryEscape(m.Request.UrlRegexStr)
+}
+
+func (m *Mock) AddPathRegexHelper(h helper.Helper) {
+
+	m.pathRegexHelpers = append(m.pathRegexHelpers, h)
 }
 
 func (m *Mock) AddDatetHelper(h helper.Helper) {
@@ -85,9 +104,19 @@ func (m Mock) HasDatetHelper() bool {
 	return len(m.dateHelpers) > 0
 }
 
+func (m Mock) HasPathRegexHelper() bool {
+
+	return len(m.pathRegexHelpers) > 0
+}
+
 func (m Mock) HasRandomHelper() bool {
 
 	return len(m.randomHelpers) > 0
+}
+
+func (m Mock) HasRegexUrl() bool {
+
+	return len(m.Request.UrlRegexStr) > 0
 }
 
 func (m *Mock) HasFunctionFile() bool {
@@ -102,12 +131,18 @@ func (m *Mock) GetFunctionFile() string {
 
 func (m Mock) HasHelper() bool {
 
-	return m.HasDatetHelper() || m.HasRequestHelper() || m.HasRandomHelper()
+	return m.HasDatetHelper() || m.HasRequestHelper() || m.HasRandomHelper() || m.HasPathRegexHelper()
 }
 
 func (m Mock) UpdateRequestHelpers(h []helper.Helper) Mock {
 
 	m.requestHelpers = h
+	return m
+}
+
+func (m Mock) UpdatePathRegexHelpers(h []helper.Helper) Mock {
+
+	m.pathRegexHelpers = h
 	return m
 }
 
@@ -143,6 +178,17 @@ func (m Mock) GetDateHelpers() []helper.Helper {
 	var clones []helper.Helper
 
 	for _, h := range m.dateHelpers {
+		clones = append(clones, h.Clone())
+	}
+
+	return clones
+}
+
+func (m Mock) GetPathRegexHelpers() []helper.Helper {
+
+	var clones []helper.Helper
+
+	for _, h := range m.pathRegexHelpers {
 		clones = append(clones, h.Clone())
 	}
 
@@ -198,7 +244,13 @@ func (m Mock) GetJsonBytes() []byte {
 }
 
 func (m Mock) GetRequestUrl() string {
+
+	if m.Request.UrlRegexStr != "" {
+		return m.Request.UrlTransformed
+	}
+
 	return m.Request.Url
+
 }
 
 func (m Mock) GetName() string {

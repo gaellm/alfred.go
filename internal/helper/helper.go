@@ -21,16 +21,17 @@ import (
 	"regexp"
 )
 
-//helper types
+// helper types
 const REQUEST = "req"
 const DATE = "time"
 const RANDOM = "random"
+const PATH_REGEX = "pathRegex"
 
-//helper params
+// helper params
 const PARAM_NAME = "name"
 const PARAM_REGEX = "regex"
 
-//json tag used with users js functions
+// json tag used with users js functions
 type Helper struct {
 	Type          string
 	String        string `json:"str"`
