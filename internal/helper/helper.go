@@ -21,6 +21,8 @@ import (
 	"regexp"
 )
 
+type PathHelperKey string
+
 // helper types
 const REQUEST = "req"
 const DATE = "time"

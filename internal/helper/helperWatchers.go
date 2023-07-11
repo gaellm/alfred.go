@@ -17,6 +17,7 @@
 package helper
 
 import (
+	"alfred/internal/log"
 	"errors"
 	"net/http"
 	"strings"
@@ -86,7 +87,10 @@ func textWatcher(d []byte, h []Helper) ([]Helper, error) {
 
 func paramWatcher(r *http.Request, h []Helper) []Helper {
 
-	r.ParseForm()
+	err := r.ParseForm()
+	if err != nil {
+		log.Error(r.Context(), "parseform failed on paramWatcher", err)
+	}
 	if len(r.Form) > 0 {
 
 		for i, helper := range h {
@@ -104,7 +108,7 @@ func paramWatcher(r *http.Request, h []Helper) []Helper {
 
 func pathWatcher(r *http.Request, h []Helper) []Helper {
 
-	values := r.Context().Value("pathHelperValues").(map[string]string)
+	values := r.Context().Value(PathHelperKey("pathHelperValues")).(map[string]string)
 
 	if len(values) > 0 {
 

@@ -77,5 +77,8 @@ func ChangingLoggingLevelRuntime(w http.ResponseWriter, r *http.Request) {
 
 	resJsonStr, _ := json.MarshalIndent(res, "", "   ")
 	w.WriteHeader(http.StatusOK)
-	w.Write(resJsonStr)
+	_, err = w.Write(resJsonStr)
+	if err != nil {
+		log.Error(r.Context(), "failed to write", err)
+	}
 }

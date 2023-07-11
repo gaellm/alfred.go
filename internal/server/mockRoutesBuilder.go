@@ -310,7 +310,10 @@ func AddMocksRoutes(mux *http.ServeMux, mockCollection mock.MockCollection, func
 
 			//set status and body to end response
 			w.WriteHeader(res.Status)
-			w.Write([]byte(res.Body))
+			_, err = w.Write([]byte(res.Body))
+			if err != nil {
+				log.Error(r.Context(), "failed to write", err)
+			}
 
 			//handle actions
 			{

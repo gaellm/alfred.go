@@ -54,7 +54,10 @@ func PatchMock(w http.ResponseWriter, r *http.Request, mockCollection mock.MockC
 			if err != nil {
 				log.Error(r.Context(), "mock patch error", err)
 				w.WriteHeader(http.StatusInternalServerError)
-				w.Write([]byte("mock patch error: " + err.Error()))
+				_, err = w.Write([]byte("mock patch error: " + err.Error()))
+				if err != nil {
+					log.Error(r.Context(), "failed to write", err)
+				}
 				return
 			}
 
@@ -65,7 +68,11 @@ func PatchMock(w http.ResponseWriter, r *http.Request, mockCollection mock.MockC
 			body, _ = json.Marshal(m)
 
 			w.WriteHeader(http.StatusOK)
-			w.Write(body)
+
+			_, err = w.Write(body)
+			if err != nil {
+				log.Error(r.Context(), "failed to write", err)
+			}
 			return
 		}
 	}
@@ -73,5 +80,8 @@ func PatchMock(w http.ResponseWriter, r *http.Request, mockCollection mock.MockC
 	mockList, _ := json.MarshalIndent(mockCollection.GetMockInfoList(), "", "   ")
 
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("Hello Sir ! This mock does not exists, however, I've found this mock list, if it can help: \n" + string(mockList) + "\n (Alfred)"))
+	_, err = w.Write([]byte("Hello Sir ! This mock does not exists, however, I've found this mock list, if it can help: \n" + string(mockList) + "\n (Alfred)"))
+	if err != nil {
+		log.Error(r.Context(), "failed to write", err)
+	}
 }

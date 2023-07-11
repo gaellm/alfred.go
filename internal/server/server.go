@@ -19,6 +19,7 @@ package server
 import (
 	"alfred/internal/conf"
 	"alfred/internal/function"
+	"alfred/internal/helper"
 	"alfred/internal/log"
 	"alfred/internal/mock"
 	"alfred/internal/tracing"
@@ -77,7 +78,7 @@ func pathHelperMiddleware(mockCollection mock.MockCollection) func(http.Handler)
 						//update url to match the mock handler
 						r.URL.Path = m.Request.UrlTransformed
 
-						ctx := context.WithValue(r.Context(), "pathHelperValues", values)
+						ctx := context.WithValue(r.Context(), helper.PathHelperKey("pathHelperValues"), values)
 						next.ServeHTTP(w, r.WithContext(ctx))
 						return
 					}
@@ -192,7 +193,11 @@ func BuildHandler(conf *conf.Config, asyncRunningJobsCount *sync.WaitGroup, mock
 			mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 
 				mockList, _ := json.MarshalIndent(mocks.GetMockInfoList(), "", "   ")
-				w.Write([]byte("Hello Sir ! I take care ot the following mocks:\n" + string(mockList) + "\n\n(Alfred)"))
+				_, err := w.Write([]byte("Hello Sir ! I take care ot the following mocks:\n" + string(mockList) + "\n\n(Alfred)"))
+				if err != nil {
+					log.Error(r.Context(), "failed to write", err)
+				}
+
 			})
 
 			mux.HandleFunc("/alfred", func(w http.ResponseWriter, r *http.Request) {
