@@ -6,7 +6,7 @@
     },
     "response": {
         "status": 200,
-        "body": "{\"a-date-4-minutes-after\": \"{{ alfred.time.date(2009,01,03,4,2,0,3).format('Mon Jan 2 15:04:05 -0700 MST 2006').add('4m') }}\", \"a-date-4-minutes-before\": \"{{ alfred.time.date(2009,01,03,4,2,0,3).format('Mon Jan 2 15:04:05 -0700 MST 2006').add('-4m') }}\",\"a-date-with unix format\": \"{{ alfred.time.date(2009,01,03,4,2,0,3).format('unix') }}\",\"now UTC\": \"{{ alfred.time.now.utc }}\",\"now\": \"{{ alfred.time.now }}\"}",
+        "body": {"a-date-4-minutes-after": "{{ alfred.time.date(2009,01,03,4,2,0,3).format('Mon Jan 2 15:04:05 -0700 MST 2006').add('4m') }}", "a-date-4-minutes-before": "{{ alfred.time.date(2009,01,03,4,2,0,3).format('Mon Jan 2 15:04:05 -0700 MST 2006').add('-4m') }}","a-date-with unix format": "{{ alfred.time.date(2009,01,03,4,2,0,3).format('unix') }}","now UTC": "{{ alfred.time.now.utc }}","now": "{{ alfred.time.now }}"},
         "headers": {
             "Content-Type": "application/json"
         }

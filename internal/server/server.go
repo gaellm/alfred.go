@@ -32,6 +32,7 @@ import (
 	"net"
 	"net/http"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -93,6 +94,28 @@ func pathHelperMiddleware(mockCollection mock.MockCollection) func(http.Handler)
 	}
 }
 
+func routerMiddleware(next http.Handler) http.Handler {
+
+	fn := func(w http.ResponseWriter, r *http.Request) {
+
+		r.URL.Path = "/" + r.Method + r.URL.Path
+
+		// call next handler
+		next.ServeHTTP(w, r)
+
+	}
+	return http.HandlerFunc(fn)
+
+}
+
+func removeFirstFolder(path string) string {
+	components := strings.SplitN(path, "/", 3)
+	if len(components) >= 3 {
+		return "/" + components[2]
+	}
+	return path
+}
+
 // Middleware for logging each request
 func logRequestMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -102,7 +125,7 @@ func logRequestMiddleware(next http.Handler) http.Handler {
 		next.ServeHTTP(w, r)
 
 		var path string
-		values := r.Context().Value("pathHelperValues")
+		values := r.Context().Value(helper.PathHelperKey("pathHelperValues"))
 		if values != nil {
 
 			path = values.(map[string]string)["originalPath"]
@@ -112,7 +135,7 @@ func logRequestMiddleware(next http.Handler) http.Handler {
 		}
 
 		// Log the request
-		msg := " " + r.Method + " " + path + " " + r.RemoteAddr + " " + fmt.Sprint(time.Since(start))
+		msg := " " + r.Method + " " + removeFirstFolder(path) + " " + r.RemoteAddr + " " + fmt.Sprint(time.Since(start))
 
 		log.Info(r.Context(), msg)
 
@@ -133,6 +156,9 @@ func BuildServer(conf *conf.Config, asyncRunningJobsCount *sync.WaitGroup, mockC
 	if err != nil {
 		return nil, err
 	}
+
+	//Router
+	handler = routerMiddleware(handler)
 
 	//logger
 	handler = logRequestMiddleware(handler)
@@ -188,7 +214,7 @@ func BuildHandler(conf *conf.Config, asyncRunningJobsCount *sync.WaitGroup, mock
 
 		//Add Routes
 		{
-			mux.HandleFunc("/logger", ChangingLoggingLevelRuntime)
+			mux.HandleFunc("/POST"+"/logger", ChangingLoggingLevelRuntime)
 
 			mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 
@@ -200,11 +226,11 @@ func BuildHandler(conf *conf.Config, asyncRunningJobsCount *sync.WaitGroup, mock
 
 			})
 
-			mux.HandleFunc("/alfred", func(w http.ResponseWriter, r *http.Request) {
+			mux.HandleFunc("/PATCH"+"/alfred", func(w http.ResponseWriter, r *http.Request) {
 				PatchMock(w, r, mocks)
 			})
 
-			mux.HandleFunc("/alfred/delay", func(w http.ResponseWriter, r *http.Request) {
+			mux.HandleFunc("/POST"+"/alfred/delay", func(w http.ResponseWriter, r *http.Request) {
 				DelayMocks(&alfredGlobalDelay, w, r)
 			})
 

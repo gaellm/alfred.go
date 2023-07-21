@@ -24,6 +24,7 @@ import (
 	"context"
 	"encoding/json"
 	"os"
+	"strings"
 
 	"go.uber.org/zap"
 )
@@ -79,12 +80,22 @@ func BuildMockFromJson(jsonData []byte) (Mock, error) {
 		} else if h.Type == helper.RANDOM {
 			mock.AddRandomHelper(h)
 		} else if h.Type == helper.PATH_REGEX {
-
 			mock.AddPathRegexHelper(h)
-			mock.SetRegexUrl()
 		}
 
 		log.Debug(context.Background(), "helper "+h.Name+" found :'"+h.Target+"'"+" of type : '"+h.Type+"'", zap.String("mock-name", mock.GetName()))
+	}
+
+	//Add / if not present
+	if mock.Request.Url != "" && !strings.HasPrefix(mock.Request.Url, "/") {
+		mock.Request.Url = "/" + mock.Request.Url
+	}
+	if mock.Request.UrlRegexStr != "" && !strings.HasPrefix(mock.Request.UrlRegexStr, "/") {
+		mock.Request.UrlRegexStr = "/" + mock.Request.UrlRegexStr
+	}
+
+	if mock.Request.UrlRegexStr != "" {
+		mock.SetRegexUrl()
 	}
 
 	return mock, nil

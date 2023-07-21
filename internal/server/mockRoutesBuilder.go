@@ -46,7 +46,7 @@ func AddMocksRoutes(mux *http.ServeMux, mockCollection mock.MockCollection, func
 
 		log.Debug(ctx, "Creating route for mock '"+m.GetName()+"'", zap.String("mock-url", m.GetRequestUrl()), zap.String("mock-conf", string(m.GetJsonBytes())))
 
-		mux.HandleFunc(m.GetRequestUrl(), func(w http.ResponseWriter, r *http.Request) {
+		mux.HandleFunc("/"+m.GetRequestMethod()+m.GetRequestUrl(), func(w http.ResponseWriter, r *http.Request) {
 
 			requestRecover(w, r)
 			ctx := r.Context()
