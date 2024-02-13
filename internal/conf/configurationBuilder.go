@@ -45,7 +45,10 @@ const (
 	LISTEN_INTERFACE = "alfred.core.listen.ip"
 
 	//Listening port key name.
-	LISTEN_PORT = "alfred.core.listen.port"
+	LISTEN_PORT          = "alfred.core.listen.port"
+	LISTEN_TLS_ENABLE    = "alfred.core.listen.enable-tls"
+	LISTEN_TLS_CERT_PATH = "alfred.core.listen.tls-cert-path"
+	LISTEN_TLS_KEY_PATH  = "alfred.core.listen.tls-key-path"
 
 	//Debug key
 	LOG_LEVEL_KEY = "alfred.log-level"
@@ -84,8 +87,11 @@ type AlfredConfig struct {
 }
 
 type ListenConfig struct {
-	Ip   string `mapstructure:"ip"`
-	Port string `mapstructure:"port"`
+	Ip          string `mapstructure:"ip"`
+	Port        string `mapstructure:"port"`
+	TlsEnabled  bool   `mapstructure:"enable-tls"`
+	TlsCertPath string `mapstructure:"tls-cert-path"`
+	TlsKeyPath  string `mapstructure:"tls-key-path"`
 }
 
 // Struct where all core config keys are stored.
@@ -160,6 +166,9 @@ func buildConfiguration() (Config, error) {
 	v.SetDefault(ENVIRONMENT_KEY, "")
 	v.SetDefault(LISTEN_INTERFACE, "")
 	v.SetDefault(LISTEN_PORT, "")
+	v.SetDefault(LISTEN_TLS_ENABLE, "")
+	v.SetDefault(LISTEN_TLS_CERT_PATH, "")
+	v.SetDefault(LISTEN_TLS_KEY_PATH, "")
 	v.SetDefault(LOG_LEVEL_KEY, "")
 	v.SetDefault(PROMETHEUS_ENABLE_KEY, "")
 	v.SetDefault(PROMETHEUS_PATH_KEY, "")

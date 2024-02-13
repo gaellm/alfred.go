@@ -232,7 +232,7 @@ func AddMocksRoutes(mux *http.ServeMux, mockCollection mock.MockCollection, func
 				ctxReplaceHelperSpan, replaceHelperSpan := tracer.Start(ctxHelper, "build response with helper(s) value(s)")
 
 				// Replace helpers inside mock response body
-				res.Body, err = helper.HelperReplacement(m.GetResponseBody(), helpersPopulated)
+				res.Body, err = helper.HelperReplacement(res.Body, helpersPopulated)
 
 				// Set helpers inside mock response headers and set
 				for k, v := range m.GetResponseHeaders() {
@@ -245,7 +245,7 @@ func AddMocksRoutes(mux *http.ServeMux, mockCollection mock.MockCollection, func
 					log.Warn(ctxReplaceHelperSpan, "error during helpers replacement", err,
 						zap.String("request-details", string(reqDetailsStr)),
 						zap.String("mock-conf", string(m.GetJsonBytes())),
-						zap.String("response-body", m.GetResponseBody()),
+						zap.String("response-body", res.Body),
 						zap.String("helpers", helper.StringifyHelpers(helpersPopulated)))
 				}
 
@@ -309,7 +309,10 @@ func AddMocksRoutes(mux *http.ServeMux, mockCollection mock.MockCollection, func
 			detachedCtx := detachcontext.Detach(ctx)
 
 			//set status and body to end response
-			w.WriteHeader(res.Status)
+			if res.Status != 0 {
+				w.WriteHeader(res.Status)
+			}
+
 			_, err = w.Write([]byte(res.Body))
 			if err != nil {
 				log.Error(r.Context(), "failed to write", err)

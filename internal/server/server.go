@@ -25,6 +25,7 @@ import (
 	"alfred/internal/tracing"
 	"alfred/pkg/metrics"
 	"context"
+	"crypto/tls"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -173,11 +174,40 @@ func BuildServer(conf *conf.Config, asyncRunningJobsCount *sync.WaitGroup, mockC
 		handler = middlewarePathHelper(handler)
 	}
 
+	var tlsConfig *tls.Config
+
+	if conf.Alfred.Core.Listen.TlsEnabled {
+
+		// Load server certificate and private key
+		certFile := conf.Alfred.Core.Listen.TlsCertPath // Path to the certificate file
+		keyFile := conf.Alfred.Core.Listen.TlsKeyPath   // Path to the private key file
+		cert, err := tls.LoadX509KeyPair(certFile, keyFile)
+		if err != nil {
+			log.Error(context.Background(), "error Server TLS", err)
+			return nil, fmt.Errorf("failed to load TLS certificate and key: %v", err)
+		}
+
+		// Create a TLS configuration
+		tlsConfig = &tls.Config{
+			Certificates:       []tls.Certificate{cert},
+			MinVersion:         tls.VersionTLS12,
+			InsecureSkipVerify: true,
+			ClientAuth:         tls.NoClientCert,
+			// Prefer server cipher suites
+			PreferServerCipherSuites: true,
+			// Use only modern, secure protocols
+			//MinVersion: tls.VersionTLS12,
+			// ... other TLS options as needed
+		}
+
+	}
+
 	//Associate the handler to a server (-> contains listening interface(s))
 	//Here, the server is listening on ALL interfaces and binding on 'conf.Port' port
 	return &http.Server{
-		Handler: handler,
-		Addr:    fmt.Sprintf("%s:%s", conf.Alfred.Core.Listen.Ip, conf.Alfred.Core.Listen.Port),
+		Handler:   handler,
+		Addr:      fmt.Sprintf("%s:%s", conf.Alfred.Core.Listen.Ip, conf.Alfred.Core.Listen.Port),
+		TLSConfig: tlsConfig,
 	}, nil
 }
 
@@ -286,7 +316,12 @@ func Serve(main_ctx context.Context, conf *conf.Config, server *http.Server) {
 			}
 		}()
 
-		err = server.Serve(listener)
+		if conf.Alfred.Core.Listen.TlsEnabled {
+			err = server.ServeTLS(listener, "", "")
+		} else {
+			err = server.Serve(listener)
+		}
+
 		if err != nil {
 			log.Error(main_ctx, "error at server start", err)
 		}

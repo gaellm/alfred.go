@@ -10,8 +10,11 @@
             "functions-dir": "user-files/functions/",
             "body-files-dir": "user-files/body-files/",
             "listen": {
-                "ip": "0.0.0.0",
-                "port": "8080"
+                "ip": "127.0.0.1",
+                "port": "8080",
+                "enable-tls": false,
+                "tls-cert-path": "user-files/tls/cert.pem",
+                "tls-key-path": "user-files/tls/key.pem"
             }
         },
         "prometheus":{

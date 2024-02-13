@@ -267,7 +267,17 @@ func (m Mock) GetResponseStatus() int {
 }
 
 func (m Mock) GetResponseBody() string {
-	return string(m.Response.Body)
+
+	// Declare a variable to hold the unmarshaled text
+	var body string
+
+	// Unmarshal the raw message into the string variable
+	err := json.Unmarshal(m.Response.Body, &body)
+	if err != nil {
+		// Handle error
+		return string(m.Response.Body)
+	}
+	return body
 }
 
 func (m Mock) GetResponseHeaders() map[string]string {

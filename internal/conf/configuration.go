@@ -33,6 +33,9 @@ const (
 	DEFAULT_BODIES_DIR                   = "user-files/body-files/"
 	DEFAULT_LISTEN_INTERFACE             = "0.0.0.0"
 	DEFAULT_LISTEN_PORT                  = "8080"
+	DEFAULT_TLS_ENABLED                  = false
+	DEFAULT_TLS_CERT_PATH                = "user-files/tls/cert.pem"
+	DEFAULT_TLS_KEY_PATH                 = "user-files/tls/key.pem"
 	DEFAULT_LOG_LEVEL                    = "info"
 	DEFAULT_PROMETHEUS_ENABLE            = false
 	DEFAULT_PROMETHEUS_PATH              = "/metrics"
@@ -57,8 +60,11 @@ var DefaultConfig = Config{
 			FunctionsDir: DEFAULT_FUNCTIONS_DIR,
 			BodiesDir:    DEFAULT_BODIES_DIR,
 			Listen: ListenConfig{
-				Ip:   DEFAULT_LISTEN_INTERFACE,
-				Port: DEFAULT_LISTEN_PORT,
+				Ip:          DEFAULT_LISTEN_INTERFACE,
+				Port:        DEFAULT_LISTEN_PORT,
+				TlsEnabled:  DEFAULT_TLS_ENABLED,
+				TlsCertPath: DEFAULT_TLS_CERT_PATH,
+				TlsKeyPath:  DEFAULT_TLS_KEY_PATH,
 			},
 		},
 		Prometheus: PrometheusConfig{
