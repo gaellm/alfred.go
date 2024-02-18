@@ -103,17 +103,19 @@ func AddMocksRoutes(mux *http.ServeMux, mockCollection mock.MockCollection, func
 						zap.String("mock-conf", string(m.GetJsonBytes())),
 					)
 
-					// Populate mock request helpers
-					pathHelpersPopulated, err := helper.PathHelperWatcher(r, m.GetPathRegexHelpers())
-					if err != nil {
-						log.Warn(ctxReqHelperSpan, "helpers path watcher in error", err,
-							zap.String("mock-name", m.GetName()),
-							zap.String("request-details", string(reqDetailsStr)),
-							zap.String("mock-conf", string(m.GetJsonBytes())),
-						)
-					}
+					if m.HasRegexUrl() {
+						// Populate mock request helpers
+						pathHelpersPopulated, err := helper.PathHelperWatcher(r, m.GetPathRegexHelpers())
+						if err != nil {
+							log.Warn(ctxReqHelperSpan, "helpers path watcher in error", err,
+								zap.String("mock-name", m.GetName()),
+								zap.String("request-details", string(reqDetailsStr)),
+								zap.String("mock-conf", string(m.GetJsonBytes())),
+							)
+						}
 
-					helpersPopulated = append(helpersPopulated, pathHelpersPopulated...)
+						helpersPopulated = append(helpersPopulated, pathHelpersPopulated...)
+					}
 
 					// Populate mock request helpers
 					requestHelpersPopulated, err := helper.RequestHelperWatcher([]byte(req.Body), r, m.GetRequestHelpers())
