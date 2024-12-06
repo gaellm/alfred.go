@@ -27,7 +27,7 @@ func TestCreateFunctionCollectionFromFolder(t *testing.T) {
 	collection, err := CreateFunctionCollectionFromFolder("../../user-files/functions/")
 	if err != nil {
 
-		t.Errorf("create collection from folder failed with error: " + err.Error())
+		t.Errorf("create collection from folder failed with error: %v", err)
 	}
 
 	if !collection.IsEmpty() {
@@ -46,11 +46,11 @@ func TestCreateFunctionCollectionFromFolder(t *testing.T) {
 
 				updatedHelpers, err := f.UpdateHelpersListener(testHelperArray)
 				if err != nil {
-					t.Errorf(err.Error())
+					t.Errorf("%v", err)
 				}
 
 				if updatedHelpers[0].Value != "Gotham" {
-					t.Errorf("failed to update helpers from js : '" + updatedHelpers[0].Value + "' should be Gotham")
+					t.Errorf("failed to update helpers from js : '%v' should be Gotham", updatedHelpers[0].Value)
 				}
 
 				if updatedHelpers[0].Regex == nil {

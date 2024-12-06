@@ -25,7 +25,7 @@ func TestCreateHelper(t *testing.T) {
 
 	helper, err := createHelper(helperString, helperTarget)
 	if err != nil {
-		t.Errorf("Create helper fail with error " + err.Error())
+		t.Errorf("Create helper fail with error %v", err)
 	}
 
 	if helper.HasValue() {

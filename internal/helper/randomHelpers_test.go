@@ -32,7 +32,7 @@ func TestFakerNoParamReturnString(t *testing.T) {
 		t.Errorf("random return empty string")
 	}
 
-	t.Logf(res)
+	t.Logf("%v", res)
 
 }
 
@@ -58,7 +58,7 @@ func TestFakerNoParamReturnBool(t *testing.T) {
 		t.Error("random return empty string")
 	}
 
-	t.Logf(res)
+	t.Logf("%v", res)
 }
 
 func TestFakerTwoParamReturnInt(t *testing.T) {
@@ -71,7 +71,7 @@ func TestFakerTwoParamReturnInt(t *testing.T) {
 		t.Error("random return empty string")
 	}
 
-	t.Logf(res)
+	t.Logf("%v", res)
 }
 
 func TestFakerNoParamReturnUuid(t *testing.T) {
@@ -84,7 +84,7 @@ func TestFakerNoParamReturnUuid(t *testing.T) {
 		t.Error("random return empty string")
 	}
 
-	t.Logf(res)
+	t.Logf("%v", res)
 }
 
 func TestFakerNoParamReturnFloat64(t *testing.T) {
@@ -97,7 +97,7 @@ func TestFakerNoParamReturnFloat64(t *testing.T) {
 		t.Error("random return empty string")
 	}
 
-	t.Logf(res)
+	t.Logf("%v", res)
 
 }
 
@@ -135,6 +135,6 @@ func TestGetFakerValueStr(t *testing.T) {
 			t.Error("get faker value for : " + methodName + " failed")
 		}
 
-		t.Logf(str)
+		t.Logf("%v", str)
 	}
 }

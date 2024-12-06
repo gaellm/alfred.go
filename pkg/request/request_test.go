@@ -29,12 +29,12 @@ func TestSendRequest(t *testing.T) {
 
 	err := r.SetUrl("https://httpbin.org/post?test=toto")
 	if err != nil {
-		t.Errorf("TestSendRequest return an error: " + err.Error())
+		t.Errorf("TestSendRequest return an error: %v", err)
 	}
 
 	err = r.SetTimeout("6s")
 	if err != nil {
-		t.Errorf("TestSendRequest return an error: " + err.Error())
+		t.Errorf("TestSendRequest return an error: %v", err)
 	}
 
 	values := map[string]string{"foo": "baz"}
@@ -43,7 +43,7 @@ func TestSendRequest(t *testing.T) {
 
 	err = r.SetMethod("POST")
 	if err != nil {
-		t.Errorf("TestSendRequest return an error: " + err.Error())
+		t.Errorf("TestSendRequest return an error: %v", err)
 	}
 
 	queryArgs := make(map[string]string)
@@ -52,33 +52,33 @@ func TestSendRequest(t *testing.T) {
 
 	response, err := r.Send(context.Background())
 	if err != nil {
-		t.Errorf("TestSendRequest return an error: " + err.Error())
+		t.Errorf("TestSendRequest return an error: %v", err)
 	}
 
 	if response.Body == "" {
 		t.Errorf("TestSendRequest return an empty response body")
 	}
-	t.Logf(response.Body)
+	t.Logf("%v", response.Body)
 
 	if len(response.Headers) < 1 {
 		t.Errorf("TestSendRequest return a bad response header")
 	}
-	t.Logf(fmt.Sprint(response.Headers))
+	t.Logf("%v", fmt.Sprint(response.Headers))
 
 	if response.Status == "" {
 		t.Errorf("TestSendRequest return a bad response status")
 	}
-	t.Logf(response.Status)
+	t.Logf("%v", response.Status)
 
 	err = r.SetUrl("https://httpbin.org/get?test=toto")
 	if err != nil {
-		t.Errorf("TestSendRequest return an error: " + err.Error())
+		t.Errorf("TestSendRequest return an error: %v", err)
 	}
 
 	r.method = "GET"
 	getResponse, err := r.Send(context.Background())
 	if err != nil {
-		t.Errorf("TestSendRequest return an error: " + err.Error())
+		t.Errorf("TestSendRequest return an error: %v", err)
 	}
-	t.Logf(getResponse.Body)
+	t.Logf("%v", getResponse.Body)
 }
