@@ -21,11 +21,22 @@ import (
 	"alfred/internal/mock"
 	"alfred/pkg/request"
 	"errors"
-	"time"
+	"sync"
 
 	"github.com/dop251/goja"
 	"github.com/dop251/goja_nodejs/console"
 	"github.com/dop251/goja_nodejs/require"
+)
+
+// VMPool manages a pool of Goja VMs
+type VMPool struct {
+	pool chan *goja.Runtime
+	size int
+}
+
+var (
+	globalPool *VMPool
+	once       sync.Once
 )
 
 const FUNC_UPDATE_HELPERS = "updateHelpers"
@@ -36,6 +47,55 @@ type Function struct {
 	FileContent          string
 	HasFuncUpdateHelpers bool
 	HasFuncAlfred        bool
+}
+
+// initializePool creates a new VM pool with the specified size
+func initializePool(size int) *VMPool {
+	pool := &VMPool{
+		pool: make(chan *goja.Runtime, size),
+		size: size,
+	}
+
+	// Initialize the pool with VMs
+	for i := 0; i < size; i++ {
+		vm := createVM()
+		pool.pool <- vm
+	}
+
+	return pool
+}
+
+// GetPool returns the global VM pool instance
+func GetPool() *VMPool {
+	once.Do(func() {
+		globalPool = initializePool(10) // Adjust pool size as needed
+	})
+	return globalPool
+}
+
+// acquireVM gets a VM from the pool
+func (p *VMPool) acquireVM() *goja.Runtime {
+	return <-p.pool
+}
+
+// releaseVM returns a VM to the pool
+func (p *VMPool) releaseVM(vm *goja.Runtime) {
+	p.pool <- vm
+}
+
+// createVM creates a new Goja VM instance
+func createVM() *goja.Runtime {
+	vm := goja.New()
+	new(require.Registry).Enable(vm)
+	console.Enable(vm)
+	vm.SetFieldNameMapper(goja.TagFieldNameMapper("json", true))
+
+	/*
+		time.AfterFunc(timeout, func() {
+			vm.Interrupt("halt")
+		})*/
+
+	return vm
 }
 
 func CreateFunction(fileName string, fileContent []byte) (Function, error) {
@@ -64,7 +124,9 @@ func (f *Function) UpdateHelpersListener(helpers []helper.Helper) ([]helper.Help
 
 	var updateHelpers func([]helper.Helper) ([]helper.Helper, error)
 
-	vm := getGojaVm()
+	pool := GetPool()
+	vm := pool.acquireVM()
+	defer pool.releaseVM(vm)
 
 	//load js functions in vm
 	_, err := vm.RunString(f.FileContent)
@@ -89,19 +151,6 @@ func (f *Function) UpdateHelpersListener(helpers []helper.Helper) ([]helper.Help
 	return updatedHelpers, nil
 }
 
-func getGojaVm() *goja.Runtime {
-
-	vm := goja.New()
-	new(require.Registry).Enable(vm)
-	console.Enable(vm)
-	vm.SetFieldNameMapper(goja.TagFieldNameMapper("json", true))
-	time.AfterFunc(60*time.Second, func() {
-		vm.Interrupt("halt")
-	})
-
-	return vm
-}
-
 func (f *Function) AlfredFunc(m mock.Mock, helpers []helper.Helper, req request.Req, res request.Res) (request.Res, error) {
 
 	if !f.HasFuncAlfred {
@@ -109,7 +158,9 @@ func (f *Function) AlfredFunc(m mock.Mock, helpers []helper.Helper, req request.
 	}
 
 	var alfred func(mock.Mock, []helper.Helper, request.Req, request.Res) (request.Res, error)
-	vm := getGojaVm()
+	pool := GetPool()
+	vm := pool.acquireVM()
+	defer pool.releaseVM(vm)
 
 	//load js functions in vm
 	_, err := vm.RunString(f.FileContent)
@@ -136,7 +187,9 @@ func (f *Function) AlfredFunc(m mock.Mock, helpers []helper.Helper, req request.
 
 func (f *Function) CheckIfFuncExists(funcName string) (bool, error) {
 
-	vm := getGojaVm()
+	pool := GetPool()
+	vm := pool.acquireVM()
+	defer pool.releaseVM(vm)
 
 	//load js functions in vm
 	_, err := vm.RunString(f.FileContent)
