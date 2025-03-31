@@ -71,3 +71,8 @@ func (m *DBManager) Delete(key string) error {
 		return txn.Delete([]byte(key))
 	})
 }
+
+// GetDB returns the underlying Badger DB instance
+func (m *DBManager) GetDB() *badger.DB {
+	return m.db
+}

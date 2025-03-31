@@ -26,7 +26,7 @@ function alfred(mock, helpers, req, res) {
     console.log(JSON.stringify(res));
 
     // Retrieve a value from the database
-    const value = dbGet("key2");
+    const value = dbGet("key3");
 
     //if value in database
     if (value){
