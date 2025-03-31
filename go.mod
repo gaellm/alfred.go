@@ -1,6 +1,6 @@
 module alfred
 
-go 1.22
+go 1.20
 
 require (
 	github.com/basgys/goxml2json v1.1.0
