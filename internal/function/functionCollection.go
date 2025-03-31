@@ -36,6 +36,19 @@ func (c FunctionCollection) IsEmpty() bool {
 	return len(c) == 0
 }
 
+func (c FunctionCollection) GetSetupFunctions() []Function {
+
+	var setupFuncs []Function
+	for _, f := range c {
+
+		if f.HasFuncSetup {
+			setupFuncs = append(setupFuncs, f)
+		}
+	}
+
+	return setupFuncs
+}
+
 func (c FunctionCollection) GetFunction(fileName string) (Function, error) {
 
 	for _, f := range c {

@@ -25,8 +25,16 @@ function alfred(mock, helpers, req, res) {
     console.log(JSON.stringify(req));
     console.log(JSON.stringify(res));
 
-    res.body += " - edited body";
+    // Retrieve a value from the database
+    const value = dbGet("key2");
 
+    //if value in database
+    if (value){
+        res.body += " " + value +" - edited body with value from database";
+    } else {
+        res.body += " - edited body";
+    }
+    
     return res;
 
 }

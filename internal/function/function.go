@@ -17,16 +17,23 @@
 package function
 
 import (
+	"alfred/internal/db"
 	"alfred/internal/helper"
+	"alfred/internal/log"
 	"alfred/internal/mock"
 	"alfred/pkg/request"
+	"context"
 	"errors"
+	"fmt"
+	"os"
+	"path/filepath"
 	"sync"
 	"time"
 
 	"github.com/dop251/goja"
 	"github.com/dop251/goja_nodejs/console"
 	"github.com/dop251/goja_nodejs/require"
+	"github.com/google/uuid"
 )
 
 // VMPool manages a pool of Goja VMs
@@ -46,12 +53,14 @@ var (
 
 const FUNC_UPDATE_HELPERS = "updateHelpers"
 const FUNC_ALFRED = "alfred"
+const FUNC_SETUP = "setup"
 
 type Function struct {
 	FileName             string
 	FileContent          string
 	HasFuncUpdateHelpers bool
 	HasFuncAlfred        bool
+	HasFuncSetup         bool
 }
 
 // initializePool creates a new VM pool with the specified size
@@ -152,10 +161,61 @@ func createVM() *goja.Runtime {
 	console.Enable(vm)
 	vm.SetFieldNameMapper(goja.TagFieldNameMapper("json", true))
 
-	/*
-		time.AfterFunc(timeout, func() {
-			vm.Interrupt("halt")
-		})*/
+	// Generate a random UUID-based path for the database
+	randomUUID := uuid.New().String()
+	dbPath := filepath.Join(os.TempDir(), fmt.Sprintf("alfred_badger_%s", randomUUID))
+
+	// Initialize the database manager
+	dbManager := db.GetDBManager()
+	err := dbManager.Init(dbPath)
+	if err != nil {
+		panic("Failed to initialize Badger DB: " + err.Error())
+	}
+
+	// Expose database functions to JavaScript
+	if err := vm.Set("dbSet", func(call goja.FunctionCall) goja.Value {
+		if len(call.Arguments) < 2 {
+			panic(vm.ToValue("dbSet requires a key and a value as arguments"))
+		}
+		key := call.Argument(0).String()
+		value := call.Argument(1).String()
+		err := dbManager.Set(key, value)
+		if err != nil {
+			panic(vm.ToValue(err.Error()))
+		}
+		return goja.Undefined()
+	}); err != nil {
+		log.Warn(context.Background(), "failed to set dbSet function in vm:", err)
+	}
+
+	if err := vm.Set("dbGet", func(call goja.FunctionCall) goja.Value {
+		if len(call.Arguments) < 1 {
+			panic(vm.ToValue("dbGet requires a key as an argument"))
+		}
+		key := call.Argument(0).String()
+		value, err := dbManager.Get(key)
+		if err != nil {
+			// Return undefined if the key is not found
+			return goja.Undefined()
+		}
+		return vm.ToValue(value)
+	}); err != nil {
+		log.Warn(context.Background(), "failed to set dbGet function in vm:", err)
+	}
+
+	if err := vm.Set("dbDelete", func(call goja.FunctionCall) goja.Value {
+		if len(call.Arguments) < 1 {
+			panic(vm.ToValue("dbDelete requires a key as an argument"))
+		}
+		key := call.Argument(0).String()
+		err := dbManager.Delete(key)
+		if err != nil {
+			panic(vm.ToValue(err.Error()))
+		}
+		return goja.Undefined()
+	}); err != nil {
+		log.Warn(context.Background(), "failed to set dbDelete function in vm:", err)
+	}
 
 	return vm
 }
@@ -163,7 +223,13 @@ func createVM() *goja.Runtime {
 func CreateFunction(fileName string, fileContent []byte) (Function, error) {
 
 	var err error
-	f := Function{fileName, string(fileContent), false, false}
+	f := Function{fileName, string(fileContent), false, false, false}
+
+	//CheckIfSetupFuncExists
+	f.HasFuncSetup, err = f.CheckIfFuncExists(FUNC_SETUP)
+	if err != nil {
+		return f, err
+	}
 
 	f.HasFuncAlfred, err = f.CheckIfFuncExists(FUNC_ALFRED)
 	if err != nil {
@@ -176,6 +242,40 @@ func CreateFunction(fileName string, fileContent []byte) (Function, error) {
 	}
 
 	return f, nil
+}
+
+func (f *Function) SetupFunc() error {
+
+	if !f.HasFuncSetup {
+		return errors.New("function file " + f.FileName + " not contains " + FUNC_SETUP + " function")
+	}
+
+	var setup func() error
+	pool := GetPool()
+	vm := pool.acquireVM()
+	defer pool.releaseVM(vm)
+
+	//load js functions in vm
+	_, err := vm.RunString(f.FileContent)
+	if err != nil {
+
+		err = errors.New(f.FileName + ": " + err.Error())
+		return err
+	}
+
+	err = vm.ExportTo(vm.Get(FUNC_SETUP), &setup)
+	if err != nil {
+		err = errors.New(f.FileName + ": " + err.Error())
+		return err
+	}
+
+	err = setup()
+	if err != nil {
+		err = errors.New(f.FileName + ": " + err.Error())
+		return err
+	}
+
+	return nil
 }
 
 func (f *Function) UpdateHelpersListener(helpers []helper.Helper) ([]helper.Helper, error) {

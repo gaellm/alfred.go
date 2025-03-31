@@ -267,7 +267,19 @@ func BuildHandler(conf *conf.Config, asyncRunningJobsCount *sync.WaitGroup, mock
 			//Load JS functions
 			functionCollection, err := function.CreateFunctionCollectionFromFolder(conf.Alfred.Core.FunctionsDir)
 			if err != nil {
-				log.Debug(context.Background(), "function files loader error: "+err.Error())
+				log.Error(context.Background(), "function files loader error", err)
+			}
+
+			//ExecuteSetupfunctions
+			setupFuncs := functionCollection.GetSetupFunctions()
+			var setupErr error
+			for _, f := range setupFuncs {
+				log.Debug(context.Background(), "start to execute setup function from "+f.FileName)
+				setupErr = f.SetupFunc()
+				log.Debug(context.Background(), "setup executed from "+f.FileName)
+			}
+			if setupErr != nil {
+				log.Error(context.Background(), "setup function files loader error ", setupErr)
 			}
 
 			// Create mocks routes
