@@ -17,20 +17,16 @@
 package function
 
 import (
-	"alfred/internal/db"
 	"alfred/internal/log"
 	"context"
 	"encoding/json"
-	"fmt"
 	"os"
-	"path/filepath"
 	"sync"
 	"time"
 
 	"github.com/dop251/goja"
 	"github.com/dop251/goja_nodejs/console"
 	"github.com/dop251/goja_nodejs/require"
-	"github.com/google/uuid"
 )
 
 // VMPool manages a pool of Goja VMs
@@ -146,17 +142,6 @@ func createVM() *goja.Runtime {
 	console.Enable(vm)
 	vm.SetFieldNameMapper(goja.TagFieldNameMapper("json", true))
 
-	// Generate a random UUID-based path for the database
-	randomUUID := uuid.New().String()
-	dbPath := filepath.Join(os.TempDir(), fmt.Sprintf("alfred_badger_%s", randomUUID))
-
-	// Initialize the database manager
-	dbManager := db.GetDBManager()
-	err := dbManager.Init(dbPath)
-	if err != nil {
-		panic("Failed to initialize Badger DB: " + err.Error())
-	}
-
 	// Expose database functions to JavaScript
 	if err := vm.Set("dbSet", func(call goja.FunctionCall) goja.Value {
 		if len(call.Arguments) < 2 {
@@ -164,7 +149,13 @@ func createVM() *goja.Runtime {
 		}
 		key := call.Argument(0).String()
 		value := call.Argument(1).String()
-		err := dbManager.Set(key, value)
+
+		dbManager, err := getDBManager()
+		if err != nil {
+			panic(vm.ToValue(err.Error()))
+		}
+
+		err = dbManager.Set(key, value)
 		if err != nil {
 			panic(vm.ToValue(err.Error()))
 		}
@@ -178,6 +169,12 @@ func createVM() *goja.Runtime {
 			panic(vm.ToValue("dbGet requires a key as an argument"))
 		}
 		key := call.Argument(0).String()
+
+		dbManager, err := getDBManager()
+		if err != nil {
+			panic(vm.ToValue(err.Error()))
+		}
+
 		value, err := dbManager.Get(key)
 		if err != nil {
 			// Return undefined if the key is not found
@@ -193,7 +190,13 @@ func createVM() *goja.Runtime {
 			panic(vm.ToValue("dbDelete requires a key as an argument"))
 		}
 		key := call.Argument(0).String()
-		err := dbManager.Delete(key)
+
+		dbManager, err := getDBManager()
+		if err != nil {
+			panic(vm.ToValue(err.Error()))
+		}
+
+		err = dbManager.Delete(key)
 		if err != nil {
 			panic(vm.ToValue(err.Error()))
 		}
@@ -220,6 +223,11 @@ func createVM() *goja.Runtime {
 		err = json.Unmarshal(content, &data)
 		if err != nil {
 			panic(vm.ToValue("Failed to parse JSON file: " + err.Error()))
+		}
+
+		dbManager, err := getDBManager()
+		if err != nil {
+			panic(vm.ToValue(err.Error()))
 		}
 
 		// Use a batch write for faster imports
