@@ -19,6 +19,7 @@ package files
 import (
 	"errors"
 	"os"
+	"path"
 	"path/filepath"
 )
 
@@ -86,4 +87,21 @@ func FindAllFiles(targetDir string, pattern ...string) ([]string, error) {
 	}
 
 	return files, nil
+}
+
+func GetFileName(filePath string) string {
+
+	return path.Base(filePath)
+
+}
+
+func GetFileContent(filePath string) ([]byte, error) {
+
+	fileContent, err := os.ReadFile(filePath)
+	if err != nil {
+		return fileContent, err
+	}
+
+	return fileContent, nil
+
 }

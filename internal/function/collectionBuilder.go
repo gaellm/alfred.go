@@ -18,8 +18,6 @@ package function
 
 import (
 	"alfred/pkg/files"
-	"os"
-	"path"
 )
 
 func CreateFunctionCollectionFromFolder(path string) (FunctionCollection, error) {
@@ -33,8 +31,8 @@ func CreateFunctionCollectionFromFolder(path string) (FunctionCollection, error)
 
 	for _, path := range matches {
 
-		fileName := getFileName(path)
-		fileContent, err := getFileContent(path)
+		fileName := files.GetFileName(path)
+		fileContent, err := files.GetFileContent(path)
 		if err != nil {
 			return functionCollection, err
 		}
@@ -48,22 +46,5 @@ func CreateFunctionCollectionFromFolder(path string) (FunctionCollection, error)
 	}
 
 	return functionCollection, nil
-
-}
-
-func getFileName(filePath string) string {
-
-	return path.Base(filePath)
-
-}
-
-func getFileContent(filePath string) ([]byte, error) {
-
-	fileContent, err := os.ReadFile(filePath)
-	if err != nil {
-		return fileContent, err
-	}
-
-	return fileContent, nil
 
 }
