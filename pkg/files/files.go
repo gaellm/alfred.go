@@ -23,67 +23,76 @@ import (
 	"path/filepath"
 )
 
-// Find files using a pattern and a target directory.
+// FindFiles finds files using a pattern and a target directory.
 func FindFiles(targetDir string, pattern ...string) ([]string, error) {
-
-	//This is the files slice
+	// This is the files slice
 	var files []string
 
+	// Normalize the target directory path
+	targetDir = filepath.Clean(targetDir)
+
 	for _, v := range pattern {
-		matches, err := filepath.Glob(targetDir + v)
+		// Use filepath.Join to construct the full path
+		searchPattern := filepath.Join(targetDir, v)
+
+		// Perform the glob search
+		matches, err := filepath.Glob(searchPattern)
 		if err != nil {
-			return matches, errors.New("incorrect file path")
+			return nil, errors.New("incorrect file path")
 		}
 
 		if len(matches) != 0 {
-			//fmt.Println("Found : ", matches)
 			files = append(files, matches...)
 		}
 	}
 
 	if len(files) < 1 {
-		return files, errors.New("no files or directory " + targetDir)
+		return nil, errors.New("no files or directory " + targetDir)
 	}
 
 	return files, nil
 }
 
-func FindAllFiles(targetDir string, pattern ...string) ([]string, error) {
-
-	//This is the files slice
+// FindAllFiles recursively finds files in a directory and its subdirectories that match the given patterns.
+func FindAllFiles(targetDir string, patterns ...string) ([]string, error) {
+	// This is the files slice
 	var files []string
 
-	err := filepath.Walk(targetDir,
-		func(path string, info os.FileInfo, err error) error {
+	// Normalize the target directory path
+	targetDir = filepath.Clean(targetDir)
 
-			if err != nil {
-				return err
-			}
+	// Walk through the directory and its subdirectories
+	err := filepath.Walk(targetDir, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err // Return the error if there's an issue accessing a file or directory
+		}
 
-			if info.IsDir() {
-
-				path += "/"
-
-				for _, v := range pattern {
-					matches, err := filepath.Glob(path + v)
-					if err != nil {
-						return err
-					}
-
-					if len(matches) != 0 {
-						files = append(files, matches...)
-					}
-				}
-			}
-
+		// Skip directories
+		if info.IsDir() {
 			return nil
-		})
+		}
+
+		// Check if the file matches any of the patterns
+		for _, pattern := range patterns {
+			matched, err := filepath.Match(pattern, filepath.Base(path))
+			if err != nil {
+				return err // Return the error if the pattern is invalid
+			}
+			if matched {
+				files = append(files, path)
+				break // Stop checking other patterns if a match is found
+			}
+		}
+
+		return nil
+	})
 	if err != nil {
-		return files, err
+		return nil, err
 	}
 
-	if len(files) < 1 {
-		return files, errors.New("no files or directory " + targetDir)
+	// Return an error if no files were found
+	if len(files) == 0 {
+		return nil, errors.New("no files or directory " + targetDir)
 	}
 
 	return files, nil
