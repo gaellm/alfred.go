@@ -8,8 +8,9 @@ import (
 )
 
 type DBManager struct {
-	db   *badger.DB
-	once sync.Once
+	db     *badger.DB
+	once   sync.Once
+	dbPath string
 }
 
 var instance *DBManager
@@ -22,10 +23,16 @@ func GetDBManager() *DBManager {
 	return instance
 }
 
+func (m *DBManager) GetDBPath() string {
+
+	return m.dbPath
+}
+
 // Init initializes the Badger database
 func (m *DBManager) Init(dbPath string) error {
 	var err error
 	m.once.Do(func() {
+		m.dbPath = dbPath
 		opts := badger.DefaultOptions(dbPath).WithLogger(nil) // Disable Badger's internal logging
 		m.db, err = badger.Open(opts)
 		if err != nil {

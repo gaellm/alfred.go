@@ -19,8 +19,6 @@ package function
 import (
 	"alfred/internal/log"
 	"context"
-	"encoding/json"
-	"os"
 	"sync"
 	"time"
 
@@ -142,114 +140,11 @@ func createVM() *goja.Runtime {
 	console.Enable(vm)
 	vm.SetFieldNameMapper(goja.TagFieldNameMapper("json", true))
 
-	// Expose database functions to JavaScript
-	if err := vm.Set("dbSet", func(call goja.FunctionCall) goja.Value {
-		if len(call.Arguments) < 2 {
-			panic(vm.ToValue("dbSet requires a key and a value as arguments"))
-		}
-		key := call.Argument(0).String()
-		value := call.Argument(1).String()
-
-		dbManager, err := getDBManager()
-		if err != nil {
-			panic(vm.ToValue(err.Error()))
-		}
-
-		err = dbManager.Set(key, value)
-		if err != nil {
-			panic(vm.ToValue(err.Error()))
-		}
-		return goja.Undefined()
-	}); err != nil {
-		log.Warn(context.Background(), "failed to set dbSet function in vm:", err)
-	}
-
-	if err := vm.Set("dbGet", func(call goja.FunctionCall) goja.Value {
-		if len(call.Arguments) < 1 {
-			panic(vm.ToValue("dbGet requires a key as an argument"))
-		}
-		key := call.Argument(0).String()
-
-		dbManager, err := getDBManager()
-		if err != nil {
-			panic(vm.ToValue(err.Error()))
-		}
-
-		value, err := dbManager.Get(key)
-		if err != nil {
-			// Return undefined if the key is not found
-			return goja.Undefined()
-		}
-		return vm.ToValue(value)
-	}); err != nil {
-		log.Warn(context.Background(), "failed to set dbGet function in vm:", err)
-	}
-
-	if err := vm.Set("dbDelete", func(call goja.FunctionCall) goja.Value {
-		if len(call.Arguments) < 1 {
-			panic(vm.ToValue("dbDelete requires a key as an argument"))
-		}
-		key := call.Argument(0).String()
-
-		dbManager, err := getDBManager()
-		if err != nil {
-			panic(vm.ToValue(err.Error()))
-		}
-
-		err = dbManager.Delete(key)
-		if err != nil {
-			panic(vm.ToValue(err.Error()))
-		}
-		return goja.Undefined()
-	}); err != nil {
-		log.Warn(context.Background(), "failed to set dbDelete function in vm:", err)
-	}
-
-	// Add the dbLoadFile function with batch writes
-	if err := vm.Set("dbLoadFile", func(call goja.FunctionCall) goja.Value {
-		if len(call.Arguments) < 1 {
-			panic(vm.ToValue("dbLoadFile requires a file path as an argument"))
-		}
-		filePath := call.Argument(0).String()
-
-		// Read the file contents using os.ReadFile
-		content, err := os.ReadFile(filePath)
-		if err != nil {
-			panic(vm.ToValue("Failed to read file: " + err.Error()))
-		}
-
-		// Parse the JSON into a map
-		var data map[string]string
-		err = json.Unmarshal(content, &data)
-		if err != nil {
-			panic(vm.ToValue("Failed to parse JSON file: " + err.Error()))
-		}
-
-		dbManager, err := getDBManager()
-		if err != nil {
-			panic(vm.ToValue(err.Error()))
-		}
-
-		// Use a batch write for faster imports
-		writeBatch := dbManager.GetDB().NewWriteBatch() // Get the Badger DB instance
-		defer writeBatch.Cancel()                       // Ensure the batch is canceled if something goes wrong
-
-		for key, value := range data {
-			err = writeBatch.Set([]byte(key), []byte(value))
-			if err != nil {
-				panic(vm.ToValue("Failed to add key-value pair to batch: " + err.Error()))
-			}
-		}
-
-		// Commit the batch
-		err = writeBatch.Flush()
-		if err != nil {
-			panic(vm.ToValue("Failed to commit batch: " + err.Error()))
-		}
-
-		return vm.ToValue("File loaded successfully using batch writes")
-	}); err != nil {
-		panic("Failed to set dbLoadFile function in VM: " + err.Error())
+	//Add global vars
+	globalVars := getDbWrapper()
+	err := addVarsToGogaVmGlobalConext(vm, globalVars...)
+	if err != nil {
+		log.Fatal(context.Background(), "fail to add global vars to Goja vm global context", err)
 	}
 
 	return vm

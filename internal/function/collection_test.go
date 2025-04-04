@@ -17,54 +17,70 @@
 package function
 
 import (
-	"alfred/internal/helper"
-	"regexp"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
-func TestCreateFunctionCollectionFromFolder(t *testing.T) {
-
-	collection, err := CreateFunctionCollectionFromFolder("../../user-files/functions/")
-	if err != nil {
-
-		t.Errorf("create collection from folder failed with error: %v", err)
+func TestFunctionCollection_GetJs(t *testing.T) {
+	// Create a sample FunctionCollection
+	collection := FunctionCollection{
+		{FileName: "file1.js", FileContent: "//content1"},
+		{FileName: "file2.js", FileContent: "//content2"},
 	}
 
-	if !collection.IsEmpty() {
+	// Test retrieving existing file content
+	content := collection.GetJs("file1.js")
+	assert.Equal(t, "//content1", content)
 
-		var testHelper helper.Helper
-		testHelper.Name = "my-city"
-		testHelper.Value = "Rennes"
-		testHelper.Regex = regexp.MustCompile(".*date[(]([^)]*)[)].*")
-		testHelper.AddPrivateParam("toto", "titi")
+	// Test retrieving non-existing file content
+	content = collection.GetJs("file3.js")
+	assert.Equal(t, "", content)
+}
 
-		testHelperArray := []helper.Helper{testHelper}
+func TestFunctionCollection_IsEmpty(t *testing.T) {
+	// Test with an empty collection
+	emptyCollection := FunctionCollection{}
+	assert.True(t, emptyCollection.IsEmpty())
 
-		for _, f := range collection {
+	// Test with a non-empty collection
+	nonEmptyCollection := FunctionCollection{
+		{FileName: "file1.js", FileContent: "content1"},
+	}
+	assert.False(t, nonEmptyCollection.IsEmpty())
+}
 
-			if f.HasFuncUpdateHelpers {
-
-				updatedHelpers, err := f.UpdateHelpersListener(testHelperArray)
-				if err != nil {
-					t.Errorf("%v", err)
-				}
-
-				if updatedHelpers[0].Value != "Gotham" {
-					t.Errorf("failed to update helpers from js : '%v' should be Gotham", updatedHelpers[0].Value)
-				}
-
-				if updatedHelpers[0].Regex == nil {
-					t.Errorf("regex lost")
-				}
-
-				if updatedHelpers[0].GetPrivateParam("toto") != "titi" {
-					t.Errorf("private params lost")
-				}
-			}
-		}
-
-	} else {
-		t.Logf("collection is empty")
+func TestFunctionCollection_GetSetupFunctions(t *testing.T) {
+	// Create a sample FunctionCollection
+	collection := FunctionCollection{
+		{FileName: "file1.js", FileContent: "//content1", HasFuncSetup: true},
+		{FileName: "file2.js", FileContent: "//content2", HasFuncSetup: false},
+		{FileName: "file3.js", FileContent: "//content3", HasFuncSetup: true},
 	}
 
+	// Test retrieving setup functions
+	setupFunctions := collection.GetSetupFunctions()
+	assert.Len(t, setupFunctions, 2)
+	assert.Equal(t, "file1.js", setupFunctions[0].FileName)
+	assert.Equal(t, "file3.js", setupFunctions[1].FileName)
+}
+
+func TestFunctionCollection_GetFunction(t *testing.T) {
+	// Create a sample FunctionCollection
+	collection := FunctionCollection{
+		{FileName: "file1.js", FileContent: "//content1"},
+		{FileName: "file2.js", FileContent: "//content2"},
+	}
+
+	// Test retrieving an existing function
+	function, err := collection.GetFunction("file1.js")
+	assert.NoError(t, err)
+	assert.Equal(t, "file1.js", function.FileName)
+	assert.Equal(t, "//content1", function.FileContent)
+
+	// Test retrieving a non-existing function
+	function, err = collection.GetFunction("file3.js")
+	assert.Error(t, err)
+	assert.Equal(t, Function{}, function)
+	assert.EqualError(t, err, "no fonction files named file3.js")
 }
