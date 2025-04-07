@@ -104,10 +104,11 @@ func TestPoolRespectsMaxSize(t *testing.T) {
 	pool.Shutdown()
 }
 
-/*
 func TestCleanupRoutine(t *testing.T) {
 	// Initialize a pool with minSize = 1 and maxSize = 3
 	pool := initializePool(1, 3)
+
+	pool.cleanupFreq = 3 * time.Second
 
 	// Add two extra VMs to the pool
 	vm1 := pool.acquireVM()
@@ -115,11 +116,11 @@ func TestCleanupRoutine(t *testing.T) {
 	pool.releaseVM(vm1)
 	pool.releaseVM(vm2)
 
-	// Ensure the pool has 3 VMs
-	assert.Equal(t, 3, pool.current)
+	// Ensure the pool has 2 VMs
+	assert.Equal(t, 2, pool.current)
 
 	// Wait for the cleanup routine to run
-	time.Sleep(6 * time.Minute) // Cleanup runs every 5 minutes
+	time.Sleep(5 * time.Second) // Cleanup runs every 5 minutes
 
 	// Ensure the pool size is reduced to minSize
 	assert.Equal(t, 1, len(pool.pool))
@@ -127,7 +128,7 @@ func TestCleanupRoutine(t *testing.T) {
 
 	// Shutdown the pool to clean up
 	pool.Shutdown()
-}*/
+}
 
 func TestShutdown(t *testing.T) {
 	// Initialize a pool with minSize = 2 and maxSize = 5

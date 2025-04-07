@@ -29,12 +29,13 @@ import (
 
 // VMPool manages a pool of Goja VMs
 type VMPool struct {
-	pool     chan *goja.Runtime
-	minSize  int
-	maxSize  int
-	mutex    sync.Mutex
-	current  int
-	stopChan chan struct{} // Channel to stop cleanup goroutine
+	pool        chan *goja.Runtime
+	minSize     int
+	maxSize     int
+	mutex       sync.Mutex
+	current     int
+	cleanupFreq time.Duration
+	stopChan    chan struct{} // Channel to stop cleanup goroutine
 }
 
 var (
@@ -45,11 +46,12 @@ var (
 // initializePool creates a new VM pool with the specified size
 func initializePool(minSize, maxSize int) *VMPool {
 	pool := &VMPool{
-		pool:     make(chan *goja.Runtime, maxSize),
-		minSize:  minSize,
-		maxSize:  maxSize,
-		current:  minSize,
-		stopChan: make(chan struct{}),
+		pool:        make(chan *goja.Runtime, maxSize),
+		minSize:     minSize,
+		maxSize:     maxSize,
+		current:     minSize,
+		cleanupFreq: 5 * time.Minute,
+		stopChan:    make(chan struct{}),
 	}
 
 	// Initialize the pool with minimum number of VMs
@@ -106,7 +108,7 @@ func (p *VMPool) releaseVM(vm *goja.Runtime) {
 
 // cleanup periodically removes excess VMs
 func (p *VMPool) cleanup() {
-	ticker := time.NewTicker(5 * time.Minute)
+	ticker := time.NewTicker(p.cleanupFreq)
 	defer ticker.Stop()
 
 	for {
@@ -122,7 +124,7 @@ func (p *VMPool) cleanup() {
 						p.current--
 					default:
 						// No more VMs to remove
-						break
+						//break
 					}
 				}
 			}
@@ -133,6 +135,20 @@ func (p *VMPool) cleanup() {
 	}
 }
 
+/*
+In Goja, the goja.Runtime instance represents a JavaScript virtual machine (VM) that maintains
+its global context throughout its lifecycle. When you execute JavaScript code using vm.RunString,
+the code is evaluated and any variables, functions, or objects defined in that code are added to
+the global context of the VM. These definitions persist in the VM's global context until the VM
+is explicitly reset or destroyed.
+
+This means that subsequent calls to RunString on the same goja.Runtime instance will have access
+to all variables, functions, and objects defined in previous calls to RunString. This behavior
+can lead to unintended side effects if the VM is reused without cleaning its global context.
+
+Regarding Alfred.go the functions are replaced at each execution, be carefull with the use of not
+initialized variables.
+*/
 // createVM creates a new Goja VM instance
 func createVM() *goja.Runtime {
 	vm := goja.New()
