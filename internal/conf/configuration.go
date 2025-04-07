@@ -24,28 +24,28 @@ import (
 )
 
 const (
-	DEFAULT_NAME                         = "alfred-mock"
-	DEFAULT_VERSION                      = "1.0"
-	DEFAULT_NAMESPACE                    = "default"
-	DEFAULT_ENVIRONMENT                  = "all"
-	DEFAULT_MOCKS_DIR                    = "user-files/mocks/"
-	DEFAULT_FUNCTIONS_DIR                = "user-files/functions/"
-	DEFAULT_BODIES_DIR                   = "user-files/body-files/"
-	DEFAULT_LISTEN_INTERFACE             = "0.0.0.0"
-	DEFAULT_LISTEN_PORT                  = "8080"
-	DEFAULT_TLS_ENABLED                  = false
-	DEFAULT_TLS_CERT_PATH                = "user-files/tls/cert.pem"
-	DEFAULT_TLS_KEY_PATH                 = "user-files/tls/key.pem"
-	DEFAULT_LOG_LEVEL                    = "info"
-	DEFAULT_PROMETHEUS_ENABLE            = false
-	DEFAULT_PROMETHEUS_PATH              = "/metrics"
-	DEFAULT_PROMETHEUS_SLOW_TIME_SECONDS = 10
-	DEFAULT_PROMETHEUS_LISTEN_PORT       = ""
-	DEFAULT_PROMETHEUS_LISTEN_IP         = ""
-	DEFAULT_TRACING_OTLP_ENDPOINT        = ""
-	DEFAULT_TRACING_INSECURE             = true
-	DEFAULT_TRACING_SAMPLER              = "parentbased_traceidratio"
-	DEFAULT_TRACING_SAMPLER_ARGS         = "1.0"
+	DEFAULT_NAME                               = "alfred-mock"
+	DEFAULT_VERSION                            = "1.0"
+	DEFAULT_NAMESPACE                          = "default"
+	DEFAULT_ENVIRONMENT                        = "all"
+	DEFAULT_MOCKS_DIR                          = "user-files/mocks/"
+	DEFAULT_FUNCTIONS_DIR                      = "user-files/functions/"
+	DEFAULT_BODIES_DIR                         = "user-files/body-files/"
+	DEFAULT_LISTEN_INTERFACE                   = "0.0.0.0"
+	DEFAULT_LISTEN_PORT                        = "8080"
+	DEFAULT_TLS_ENABLED                        = false
+	DEFAULT_TLS_CERT_PATH                      = "user-files/tls/cert.pem"
+	DEFAULT_TLS_KEY_PATH                       = "user-files/tls/key.pem"
+	DEFAULT_LOG_LEVEL                          = "info"
+	DEFAULT_PROMETHEUS_ENABLE                  = false
+	DEFAULT_PROMETHEUS_PATH                    = "/metrics"
+	DEFAULT_PROMETHEUS_SLOW_TIME_SECONDS int32 = 10
+	DEFAULT_PROMETHEUS_LISTEN_PORT             = ""
+	DEFAULT_PROMETHEUS_LISTEN_IP               = ""
+	DEFAULT_TRACING_OTLP_ENDPOINT              = ""
+	DEFAULT_TRACING_INSECURE                   = true
+	DEFAULT_TRACING_SAMPLER                    = "parentbased_traceidratio"
+	DEFAULT_TRACING_SAMPLER_ARGS               = "1.0"
 )
 
 var DefaultConfig = Config{
