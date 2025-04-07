@@ -31,6 +31,8 @@ import (
 	"sync"
 	"syscall"
 
+	_ "go.uber.org/automaxprocs"
+
 	"go.uber.org/zap"
 )
 
