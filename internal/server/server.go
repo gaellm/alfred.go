@@ -47,7 +47,7 @@ func pathHelperMiddleware(mockCollection mock.MockCollection) func(http.Handler)
 		fn := func(w http.ResponseWriter, r *http.Request) {
 			for _, m := range mockCollection.Mocks {
 				if m.HasRegexUrl() {
-					if m.Request.RegexUrl.Match([]byte(r.URL.Path)) {
+					if m.Request.RegexUrl.Match([]byte(r.URL.Path)) && m.Request.Method == r.Method {
 
 						//var values Values
 						values := make(map[string]string)
@@ -81,6 +81,9 @@ func pathHelperMiddleware(mockCollection mock.MockCollection) func(http.Handler)
 						r.URL.Path = m.Request.UrlTransformed
 
 						ctx := context.WithValue(r.Context(), helper.PathHelperKey("pathHelperValues"), values)
+
+						log.Debug(r.Context(), "Url path matched a regex mock, new url is now the mock url transformed", zap.String("request path", r.URL.Path), zap.String("mock", m.Name), zap.String("urlTransformed", m.Request.UrlTransformed), zap.String("regex", m.Request.RegexUrl.String()))
+
 						next.ServeHTTP(w, r.WithContext(ctx))
 						return
 					}
